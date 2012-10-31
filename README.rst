@@ -8,7 +8,7 @@ support:
         
 - A sample of ``n`` individuals with ``m`` loci at arbitrary locations on a 
   torus of diameter ``L``.
-- Recombination occurs between locus ``j`` and ``j + 1`` at an event 
+- Recombination between locus ``j`` and ``j + 1`` at an event 
   with probability ``rho[j]``.
 - An arbitrary number of classes of event occuring at fixed
   rates. 
@@ -28,7 +28,7 @@ Here's a quick example for the impatient::
         sim.event_classes = [ercs.DiscEventClass(rate=1.0, u=0.5, r=1)]
         pi, tau = sim.simulate(1)
 
-Full documentation for ``ercs`` is available at `<http://www.homepages.ed.ac.uk/jkellehe/ercs/doc>`_.
+Full documentation for ``ercs`` is available at `http://jeromekelleher.github.com/ercs/`_.
 
 ------------
 Installation
@@ -37,7 +37,7 @@ Installation
 Ercs depends on the `GNU Scientific Library <http://www.gnu.org/software/gsl/>`_,
 which must be installed before the ``ercs`` module can be built.
 Fortunately, this is straightforward on most platforms. For example, 
-on Debian or Ubuntu::
+on Debian or Ubuntu use::
 
         $ sudo apt-get install gsl0-dev
 
@@ -45,8 +45,8 @@ or on Fedora::
 
         $ sudo yum install gsl-devel
 
-GSL is available on most packaging systems; if it is not available it can always
-be installed from source.
+GSL is available on most packaging systems; if it is not available on your
+platform, it can be installed from source.
 
 Once GSL has been installed we can build the ``ercs`` module using the 
 standard Python `methods <http://docs.python.org/install/index.html>`_. For 
@@ -84,7 +84,7 @@ like this::
         error: command 'cc' failed with exit status 1
 
 This can be remedied by using the ``gsl-config`` program to set the 
-the ``LDCONFIG`` and ``CFLAGS`` environment variables to their
+the ``LDFLAGS`` and ``CFLAGS`` environment variables to 
 their correct values::
         
          $ CFLAGS=`gsl-config --cflags` LDFLAGS=`gsl-config --libs` python setup.py build
@@ -93,18 +93,18 @@ their correct values::
 Tests
 *****
 
-Ercs provides some test cases to ensure that the installation has gone smoothly,
-so it is a good idea to run these immediately after installation::
+Ercs provides some test cases to ensure that the installation has gone smoothly.
+It is a good idea to run these immediately after installation::
 
         $ python tests.py
 
-It is also possible to run the low-level C library tests in the ``lib`` directory.
+It is also possible to run some tests on the low-level C library.
 To do this, ``cd`` to the ``lib`` directory and run::
 
         $ make check 
 
 This will build the C library test cases and run them. If compilation fails, it 
-may be necessary to run::
+may be necessary set ``LDFLAGS`` and ``CFLAGS`` as before:: 
 
         $ make CFLAGS="`gsl-config --cflags`" LDFLAGS="`gsl-config --libs`" check 
 
