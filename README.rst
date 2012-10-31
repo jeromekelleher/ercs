@@ -28,7 +28,7 @@ Here's a quick example for the impatient::
         sim.event_classes = [ercs.DiscEventClass(rate=1.0, u=0.5, r=1)]
         pi, tau = sim.simulate(1)
 
-Full documentation for ``ercs`` is available at `http://jeromekelleher.github.com/ercs/`_.
+Full documentation for ``ercs`` is available at `<http://jeromekelleher.github.com/ercs>`_.
 
 ------------
 Installation
