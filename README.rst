@@ -61,6 +61,9 @@ Or, we can manually download the package, unpack it and then run::
 
 Most of the time this will compile and install the module without difficulty.
 
+It is also possible to download the latest development version of 
+``ercs`` from `github <https://github.com/jeromekelleher/ercs>`_. 
+
 ******************
 Potential problems
 ******************

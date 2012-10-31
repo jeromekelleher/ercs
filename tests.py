@@ -19,6 +19,7 @@
 """
 Unit tests checking the API.
 """
+import math
 import random
 import unittest
 
@@ -298,7 +299,7 @@ class TestMRCACalculator(unittest.TestCase):
                 for j in range(1, n + 1):
                     for k in range(1, j + 1):
                         mrca = get_mrca(pi, j, k)
-                        self.assertEqual(mrca, sv.mrca(j, k))
+                        self.assertEqual(mrca, sv.get_mrca(j, k))
         
     def test_simulated_oriented_forests(self):
         """  
@@ -314,10 +315,40 @@ class TestMRCACalculator(unittest.TestCase):
         for j in range(1, n):
             for k in range(1, j + 1):
                 mrca = get_mrca(pi[0], j, k)
-                self.assertEqual(mrca, sv.mrca(j, k))
+                self.assertEqual(mrca, sv.get_mrca(j, k))
         
 
 
+def test_torus_distance(p1, p2, R):
+    """
+    Returns the distance between the two specified locations on a 
+    square torus of side R.
+
+    This is almost identical to the given definition, but has been 
+    in use for a very long time, so can provide a reliable point 
+    of reference in case any bugs creep in.
+    """
+    xabs = math.fabs(p2[0] - p1[0])
+    yabs = math.fabs(p2[1] - p1[1])
+    xd = min(xabs, R - xabs)
+    yd = min(yabs, R - yabs)
+    return math.sqrt(xd * xd + yd * yd)
+
+
+class TestTorusDistance(unittest.TestCase):
+    """
+    Tests the torus distance utility.
+    """
+    def test_random_locations(self):
+        L = random.uniform(1, 50)
+        random_point = lambda: (random.uniform(0, L), random.uniform(0, L))
+        for j in range(100):
+            x = random_point()
+            y = random_point()
+            d1 = ercs.torus_distance(x, y, L)
+            d2 = test_torus_distance(x, y, L)
+            self.assertEqual(d1, d2)
+    
 
 if __name__ == '__main__':
     

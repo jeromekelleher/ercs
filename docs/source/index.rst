@@ -18,7 +18,7 @@ Introduction
 
 This document provides a reference to the ``ercs`` Python module, which provides 
 a straightforward interface to coalescent simulations of the 
-extinction/recolonisation model. See [E08]_, [BEV10]_ amd [BKE10]_
+extinction/recolonisation model. See [E08]_, [BEV10]_, [BKE10]_  and [BEV12]_
 
 -----------
 Examples
@@ -110,7 +110,7 @@ the sample has completely coalesced. Consider the following example::
 
 Here we allocate a Simulator on a torus of diameter 20 as before and
 use the usual event class. This time we allocate a sample of size 10,
-arranged regularly in a lattice, and stipulate that the simulation should 
+arranged regularly along a line, and stipulate that the simulation should 
 continue for no more then 10000 time units. As we're only 
 interested in the structure of the genealogy this time, we just 
 return the oriented forest at the first locus. Running this, we get 
@@ -224,7 +224,7 @@ to spread our choice of seeds out more evenly across the possible space.
 One way to do this is::
     
     import random
-    seeds = [random.randint(1, 2**32 - 1) for j in range(100)]
+    seeds = [random.randint(1, 2**31 - 1) for j in range(100)]
 
 There is no issue with using the Python random generator within your
 code, as the ``ercs`` C library generates random numbers independantly 
@@ -243,13 +243,59 @@ of Python (using the ``mt19937`` random number generator from the
 :class:`ercs.Simulator`
 ***********************
 .. autoclass:: ercs.Simulator
-   :members:
 
+    .. attribute:: sample
+       
+       The sample.
+
+    .. attribute:: event_classes
+        
+        The event classes to simulate. 
+
+    .. attribute:: torus_diameter
+
+       The diameter of the torus we are simulating on.
+
+    .. attribute:: num_parents
+
+       The number of parents in each event.
+
+    .. attribute:: recombination_probabilities
+
+       The probability of recombination at an event between adjacent loci,
+       and (indirectly) the number of loci for each individual. 
+    
+
+    .. attribute:: max_time 
+
+       The maximum amount of time (in simulation units) that we simulate.
+
+    .. attribute:: max_lineages
+
+       The maximum number of lineages that can be extant in the simulation.
+    
+    .. attribute:: kdtree_bucket_size 
+
+       The number of locations in a leaf node of the kdtree.
+
+    .. attribute:: max_kdtree_insertions
+
+       The maximum number of insertions into the kdtree before a rebuild.
+
+    .. automethod:: simulate
 
 
 **********************
 Event Classes
 **********************
+
+The classes of event in a given simulation are specified by 
+providing a list of Event Class instances 
+in the :attr:`ercs.Simulator.event_classes` attribute. 
+Two classes of event are currently supported:
+the Disc model and the Gaussian model. See [E08]_, [BEV10]_, [BEV12]_
+and several other articles for details of the Disc model, and see 
+[BKE10]_ and [BEV12]_ for details of the Gaussian model.
 
 .. autoclass:: ercs.DiscEventClass
 
@@ -296,7 +342,9 @@ Bibliography
 .. [BKE10] N. H.  Barton,  J. Kelleher and A. M. Etheridge.
     A new model for extinction and recolonisation in two dimensions: quantifying phylogeography, 
     *Evolution*, 64(9), pp 2701--2715, 2010.
-
+.. [BEV12] N. H.  Barton,  A. M. Etheridge and A. V\ |eacute|\ ber. 
+    Modelling Evolution in a Spatial continuum,
+    *J. Stat. Mech.*, to appear, 2012.
 
 .. include:: <isolat1.txt>
 

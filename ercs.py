@@ -17,8 +17,8 @@
 # along with ercs.  If not, see <http://www.gnu.org/licenses/>.
 # 
 """
-Simulate the coalescent in the extinction recolonisation under a flexible 
-set of parameters and related utilities.
+Simulate the coalescent in the extinction recolonisation model under a 
+flexible set of parameters.
 """
 import math
 
@@ -28,7 +28,13 @@ def torus_distance(x, y, L):
     """
     Returns the Euclidean distance between two points x and y on a 2D
     square torus with diameter L.
-    
+   
+    :param x: first point
+    :type x: two-tuple of numeric values
+    :param y: second point
+    :type y: two-tuple of numeric values
+    :param L: torus diameter
+    :rtype: floating point value
     """
     xabs = math.fabs(y[0] - x[0]);
     yabs = math.fabs(y[1] - x[1]);
@@ -39,53 +45,66 @@ def torus_distance(x, y, L):
 
 class Simulator(object):
     """
-    Class representing a coalescent simulator for the extinction/recolonisation 
-    model.
+    Class representing a coalescent simulator for the extinction/recolonisation
+    model on a torus of the specified diameter. 
+
+    The class provides a convenient interface to the low-level :mod:`_ercs`
+    module, and contains instance variables for each of the simulation 
+    parameters with sensible defaults. These parameters should be set 
+    before calling simulate.
     """
     def __init__(self, torus_diameter):
         self.torus_diameter = torus_diameter
-        """
-        The diameter of the torus that we are simulating on.
-        """
-        self.sample = []
-        """
-        The sample of locations.
-        """
-        self.event_classes = [] 
-        """
-        The list of of event classes to simulate.
-        """
-        self.num_parents = 1
-        """
-        The number of parents in each event.
-        """
-        self.recombination_probabilities = []
-        """
-        The probability of recombination at an event between adjacent loci.
-        """
-        self.kdtree_bucket_size = 1
-        """
-        The number of points stored in leaf nodes of the kdtree.
-        """
-        self.max_kdtree_insertions = 0
-        """
-        The maximum number of insertions into the kdtree before it is rebuilt.
-        """
-        self.max_lineages = 1000
-        """
-        The maximum number of lineages that can exist in the simulation.
-        """
-        self.max_time = 0.0
-        """
-        The maximum time that the simultion proceeds into the past.
-        """
+        self.sample = None 
+        self.event_classes = None 
+        self.num_parents = None
+        self.recombination_probabilities = None 
+        self.kdtree_bucket_size = None
+        self.max_kdtree_insertions = None
+        self.max_lineages = None 
+        self.max_time = None
 
+    def __set_defaults(self):
+        """
+        Sets up the default values for instances that have not been 
+        specified.
+        """
+        if self.num_parents == None:
+            self.num_parents = 1
+        if self.recombination_probabilities == None:
+            self.recombination_probabilities = []
+        if self.max_time == None:
+            self.max_time = 0
+        if self.max_kdtree_insertions == None:
+            self.max_kdtree_insertions = 0    
+        if self.kdtree_bucket_size == None:
+            self.kdtree_bucket_size = 1
+        m = len(self.recombination_probabilities)
+        if m == 1:
+            self.max_lineages = len(self.sample)
+        else:
+            self.max_lineages = 1000
 
     def simulate(self, random_seed):
         """
         Runs the coalescent simulation for the parameters specified in this 
-        Simulator and returns the simulated history, (pi, tau).
+        Simulator and the specified seed, and returns the 
+        simulated history, (pi, tau). The history consists of a list of 
+        oriented forests (one for each locus) and their corresponding 
+        node times (one for each locus).
+        
+        :param random_seed: the value to initialise the random number
+            generator
+        :type random_seed: integer.
+        :return: the simulated history of the sample, (pi, tau)
+        :rtype: a tuple ``(pi, tau)``; ``pi`` is a list of lists of integers, 
+            and ``tau`` is a list of lists of doubles
+        :raises: :exc:`_ercs.InputError` when the input is not correctly formed
+        :raises: :exc:`_ercs.LibraryError` when the C library encounters an 
+            error
         """
+        self.__set_defaults()
+        
         ll_event_classes = [ec.get_low_level_representation() 
                 for ec in self.event_classes]
         pi, tau = _ercs.simulate(random_seed, self.torus_diameter, 
@@ -122,7 +141,6 @@ class DiscEventClass(EventClass):
     Class representing events from the Disc model, in which all individuals within
     distance *r* of the centre of an event have probability *u* of dying in the 
     event and parents are thrown down uniformly within this disc. 
-    See [E08]_, [BEV10]_ or ... for details.
     """
     _R = "r"
     _U = "u"
@@ -140,7 +158,7 @@ class GaussianEventClass(EventClass):
     distance *d* of the centre of the event have probability 
     :math:`u_0\\exp(-d^2/(2\\theta^2))` of dying in the event. Parents are thrown down 
     around the centre of the event according to a 2D Gaussian with variance 
-    :math:`\\theta^2\\alpha^2`.  See [BKE10]_ for details.
+    :math:`\\theta^2\\alpha^2`.  
     """
     _THETA = "theta"
     _ALPHA = "alpha"
@@ -167,6 +185,10 @@ class MRCACalculator(object):
     algorithm from TAOCP volume 4A, pg.164-167. Preprocesses the input tree into a 
     sideways heap in O(n) time and processes queries for the nearest common 
     ancestor between an arbitary pair of nodes in O(1) time.
+    
+    
+    :param oriented_forest: the input oriented forest
+    :type oriented_forest: list of non-negative integers
     """
     LAMBDA = 0
 
@@ -248,6 +270,13 @@ class MRCACalculator(object):
         """
         Returns the most recent common ancestor of the nodes x and y, 
         or 0 if the nodes belong to different trees.
+
+        :param x: the first node
+        :type x: positive integer
+        :param y: the second node
+        :type y: positive integer
+        :return: the MRCA of nodes x and y
+        :type: non-negative integer
         """
         if self.__beta[x] <= self.__beta[y]:
             h = self.__lambda[self.__beta[y] & -self.__beta[x]]
