@@ -69,8 +69,6 @@ class Simulator(object):
         Sets up the default values for instances that have not been 
         specified.
         """
-        if self.num_parents == None:
-            self.num_parents = 1
         if self.recombination_probabilities == None:
             self.recombination_probabilities = []
         if self.max_time == None:
@@ -80,10 +78,10 @@ class Simulator(object):
         if self.kdtree_bucket_size == None:
             self.kdtree_bucket_size = 1
         m = len(self.recombination_probabilities)
-        if m == 1:
-            self.max_lineages = len(self.sample)
-        else:
+        if self.max_lineages == None:
             self.max_lineages = 1000
+        if self.num_parents == None:
+            self.num_parents = 1 if m == 1 else 2 
 
     def simulate(self, random_seed):
         """

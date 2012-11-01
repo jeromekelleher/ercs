@@ -81,7 +81,7 @@ node times (one for each locus). In the example, we are dealing with a single lo
 only, so ``pi`` is a list consisting of one list, ``[0, 4, 4, 5, 5, 0]``, that 
 encodes the following tree:
 
-.. image::  ../images/oriented-tree.png
+.. image::  ../images/oriented-tree.svg
    :align: center 
    :alt: An oriented tree
   
@@ -120,7 +120,7 @@ return the oriented forest at the first locus. Running this, we get
 
 This corresponds to the forest:
 
-.. image::  ../images/oriented-forest.png
+.. image::  ../images/oriented-forest.svg
    :align: center 
    :alt: An oriented forest 
 
@@ -239,52 +239,6 @@ of Python (using the ``mt19937`` random number generator from the
 
 .. automodule:: ercs
 
-***********************
-:class:`ercs.Simulator`
-***********************
-.. autoclass:: ercs.Simulator
-
-    .. attribute:: sample
-       
-       The sample.
-
-    .. attribute:: event_classes
-        
-        The event classes to simulate. 
-
-    .. attribute:: torus_diameter
-
-       The diameter of the torus we are simulating on.
-
-    .. attribute:: num_parents
-
-       The number of parents in each event.
-
-    .. attribute:: recombination_probabilities
-
-       The probability of recombination at an event between adjacent loci,
-       and (indirectly) the number of loci for each individual. 
-    
-
-    .. attribute:: max_time 
-
-       The maximum amount of time (in simulation units) that we simulate.
-
-    .. attribute:: max_lineages
-
-       The maximum number of lineages that can be extant in the simulation.
-    
-    .. attribute:: kdtree_bucket_size 
-
-       The number of locations in a leaf node of the kdtree.
-
-    .. attribute:: max_kdtree_insertions
-
-       The maximum number of insertions into the kdtree before a rebuild.
-
-    .. automethod:: simulate
-
-
 **********************
 Event Classes
 **********************
@@ -297,9 +251,112 @@ the Disc model and the Gaussian model. See [E08]_, [BEV10]_, [BEV12]_
 and several other articles for details of the Disc model, and see 
 [BKE10]_ and [BEV12]_ for details of the Gaussian model.
 
+.. autoclass:: ercs.EventClass
+
 .. autoclass:: ercs.DiscEventClass
 
 .. autoclass:: ercs.GaussianEventClass
+
+
+***********************
+:class:`ercs.Simulator`
+***********************
+.. autoclass:: ercs.Simulator
+
+    .. attribute:: sample
+       
+        The location of lineages at the beginning of the simulation. This 
+        must be a non-empty list of two-tuples describing locations 
+        within the 2D space defined by the torus.
+
+        **Default value:** None.
+
+    .. attribute:: event_classes
+        
+        The event classes to simulate. This must be a list of 
+        :class:`ercs.EventClass`
+        instances. There must be at least one event class specified.
+        
+        **Default value:** None.
+
+    .. attribute:: torus_diameter
+
+        The diameter of the torus we are simulating on. This defines the 
+        size of the space that lineages can move around in. 
+        
+        **Default value:** Specified at instantiation time.
+
+    .. attribute:: num_parents (default=1)
+
+       The number of parents in each event. For a single locus simulation 
+       there must be at least one parent and for multi-locus simulations 
+       at least two. 
+        
+       **Default value:** 1 if the simulation is single locus, otherwise 2.
+
+    .. attribute:: recombination_probabilities
+    	
+       The list of inter-locus recombination probabilities; the length of 
+       this list also determines the number of loci for each individual.
+       At an event, the probability of locus ``j`` and ``j + 1`` descending 
+       from different parents is ``recombination_probablities[j]``.
+       The number of loci in the simulation is therefore 
+       ``len(recombination_probablities) + 1``.
+       
+       **Default value:** The empty list [] (so, we have a single locus 
+       simulation by default).
+
+    .. attribute:: max_time 
+
+       The maximum amount of time (in simulation units) that we simulate. If 
+       this is set to `0.0` the simulation continues until all loci have 
+       coalesced.
+       
+       **Default value:** 0.0
+
+    .. attribute:: max_lineage_memory
+
+       The maximum amount of memory used for tracking lineages in MiB
+       (i.e., 2^20 bytes). If the number of lineages 
+       we are tracking grows so much that we exceed this limit, 
+       the simulation aborts and raises an :exc:`_ercs.LibraryError`.  
+       This is an only an approximate limit on the total 
+       amount of memory used by the simulation.
+       
+       **Default value:** 32 MiB  
+
+    .. attribute:: kdtree_bucket_size 
+
+       The number of locations in a leaf node of the kdtree; must be a power of 
+       two, greater than 0. The ``kdtree_bucket_size``
+       is an advanced parameter that may be useful in tuning preformance when very 
+       large numbers of lineages are involved. Larger values will result in less 
+       time and memory spent indexing the lineages, but more lineages will need to
+       be tested to see if they are within the critical radius of the event. **Note:**
+       changing this parameter affects the outcome of simulations! That is, if we 
+       change the value of the bucket size, we cannot expect the outcome of two 
+       simulations with the same random seed to be the same. The reason for this 
+       is that, although we are guaranteed to end up with the same set of lineages
+       in an event in any case, the *order* in which they die may be different,
+       pushing the simulation onto a different stochastic trajectory.
+       
+       **Default value:** 1 
+
+    .. attribute:: max_kdtree_insertions
+
+       The maximum number of insertions into the kdtree before a rebuild, or 
+       0 if the tree is not to be rebuilt. This parameter is useful for tuning the 
+       performance of the simulation when 
+       we have large numbers of loci, particularly if we begin with a relatively
+       small sample. In this case, as the number of lineages increases over time
+       and they spread outwards to cover more and more of the torus, we need to 
+       rebuild the index periodically. If we begin with a large sample uniformly
+       distributed around the space then this can safely be set to 0.
+       
+       **Default value:** 0 
+
+    .. automethod:: simulate
+
 
 
 **********************

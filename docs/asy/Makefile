@@ -1,7 +1,7 @@
-all: ../images/oriented-tree.png ../images/oriented-forest.png
+all: ../images/oriented-tree.svg ../images/oriented-forest.svg
 
-../images/oriented-tree.png: oriented-tree.asy
-	asy oriented-tree.asy -f png -o ../images/
+../images/oriented-tree.svg: oriented-tree.asy
+	asy oriented-tree.asy -f svg -o ../images/
 
-../images/oriented-forest.png: oriented-forest.asy
-	asy oriented-forest.asy -f png -o ../images/
+../images/oriented-forest.svg: oriented-forest.asy
+	asy oriented-forest.asy -f svg -o ../images/

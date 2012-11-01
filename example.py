@@ -20,8 +20,12 @@ def parallel_simulate(seed):
 def multiprocessing_example():
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())       
     num_replicates = 100
+    
+    
     seeds = [random.randint(0, sys.maxsize) for j in range(num_replicates)]
     coal_times = pool.map(parallel_simulate, seeds) 
+    
+    
     print("Mean coalescence time =", sum(coal_times) / num_replicates)
 
 

@@ -1,5 +1,5 @@
 ==============================================
-Extinction/recolonisation coalescent simulator
+Coalescent simulations in continuous space
 ==============================================
 
 Simulates the coalescent for populations evolving in a spatial 
@@ -8,8 +8,7 @@ support:
         
 - A sample of ``n`` individuals with ``m`` loci at arbitrary locations on a 
   torus of diameter ``L``.
-- Recombination between locus ``j`` and ``j + 1`` at an event 
-  with probability ``rho[j]``.
+- Arbitrary recombination rates between adjacent loci.
 - An arbitrary number of classes of event occuring at fixed
   rates. 
 
