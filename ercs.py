@@ -104,8 +104,13 @@ class Simulator(object):
         
         ll_event_classes = [ec.get_low_level_representation() 
                 for ec in self.event_classes]
+        
+        n = len(self.sample) if isinstance(self.sample, dict) else len(self.sample) - 1
+        sample = [self.sample[j] for j in range(1, n + 1)]
+        print(self.sample, "->", sample)
+
         pi, tau = _ercs.simulate(random_seed, self.torus_diameter, 
-                self.num_parents, self.sample, ll_event_classes, 
+                self.num_parents, sample, ll_event_classes, 
                 self.recombination_probabilities, self.kdtree_bucket_size, 
                 self.max_kdtree_insertions, self.max_lineages, 
                 self.max_time, 0)

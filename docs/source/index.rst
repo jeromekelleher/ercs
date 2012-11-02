@@ -52,7 +52,7 @@ simple example::
     
     def first_example(seed):
         sim = ercs.Simulator(20)
-        sim.sample =  [(0, 0), (0, 5), (0, 10)]
+        sim.sample =  {1:(0, 0), 2:(0, 5), 3:(0, 10)}
         sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
         return sim.run(seed) 
 
@@ -84,14 +84,15 @@ There can be any number of event classes happening at different
 rates: see `Event Classes`_ for details.
 
 After we have completed setting up the parameters of the simulation
-we can then run the simulation by calling the :meth:`ercs.Simulator.run`
-method.
+we can then run the simulation by calling the 
+:meth:`ercs.Simulator.run` method for a given random seed. 
+This returns the simulated history of the sample.
 
 **************************
 Oriented trees and forests
 **************************
 
-The most part of ``ercs`` to understand is the way in which we encode 
+The most part of :mod:`ercs` to understand is the way in which we encode 
 genealogies. Running the example above, we get
 
 >>> first_example(3)
@@ -175,41 +176,47 @@ In this forest there are *four* roots: 1, 3, 15 and 16.
 
 
 ****************************
-Most recent common ancestors
+Coalescence times and MRCAs 
 ****************************
 
-Suppose we wished to estimate the mean coalescence time for
-lineages sampled at a variety of distances. We can set our 
+The most important quantity in coalescent simulations is the 
+*coalescence time* for a set of individuals, or the time back 
+to their most recent common ancestor (MRCA). This is
+straightforward to do in :mod:`ercs` using the 
+:class:`ercs.MRCACalculator` class to find the most recent
+common ancestor of two nodes and then looking up the node 
+times list to find the time that this node entered the sample.
+
+Suppose we wished to find the coalescence time for a set of  
+lineages sampled at a regular set of distances. We can set our 
 sample so that the lineages are located at the relevent distances,
 but it's not clear how we can get::
-
+    
     def mrca_example(seed):
-        sim = ercs.Simulator(40)
-        sim.sample =  [(0, j) for j in range(10)]
+        L = 40
+        sim = ercs.Simulator(L)
+        sim.sample = [None] + [(0, j) for j in range(1, 10)]
         sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
         pi, tau = sim.run(seed)
         sv = ercs.MRCACalculator(pi[0])
-        print("d", "\t", "coal_time")
-        for j in range(2, 11):
+        for j in range(2, 10):
             mrca = sv.get_mrca(1, j)
             coal_time = tau[0][mrca]
-            print(j, "\t", coal_time)
+            distance = ercs.torus_distance(sim.sample[1], sim.sample[j], L) 
+            print(distance, "\t", coal_time)
+
 
 Running this
 
 >>> mrca_example(2)
-d    coal_time
-2    44415.5647304
-3    44415.5647304
-4    44415.5647304
-5    87644.571846
-6    87644.571846
-7    87644.571846
-8    87644.571846
-9    594298.339466
-10   834992.341009
-
-
+1.0      293.516221072
+2.0      1240.09792256
+3.0      1505.42515816
+4.0      247645.676128
+5.0      247645.676128
+6.0      263761.554043
+7.0      263761.554043
+8.0      263761.554043
 
 
 ****************************

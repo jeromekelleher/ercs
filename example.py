@@ -32,7 +32,7 @@ def multiprocessing_example():
 
 def first_example(seed):
     sim = ercs.Simulator(20)
-    sim.sample =  [(0, 0), (0, 5), (0, 10)]
+    sim.sample =  {1:(0, 0), 2:(0, 5), 3:(0, 10)}
     sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
     return sim.run(seed) 
 
@@ -45,16 +45,17 @@ def oriented_forest_example(seed):
     return pi[0]
 
 def mrca_example(seed):
-    sim = ercs.Simulator(40)
-    sim.sample =  [(0, j) for j in range(10)]
+    L = 40
+    sim = ercs.Simulator(L)
+    sim.sample = [None] + [(0, j) for j in range(1, 10)]
     sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
     pi, tau = sim.run(seed)
     sv = ercs.MRCACalculator(pi[0])
-    print("d", "\t", "coal_time")
-    for j in range(2, 11):
+    for j in range(2, 10):
         mrca = sv.get_mrca(1, j)
         coal_time = tau[0][mrca]
-        print(j, "\t", coal_time)
+        distance = ercs.torus_distance(sim.sample[1], sim.sample[j], L) 
+        print(distance, "\t", coal_time)
 
 
 def tmp():
@@ -77,9 +78,9 @@ def main():
     #tmp()
     #multiprocessing_example()
     #nca_example()
-    print(first_example(3))
+    #print(first_example(3))
     #print(oriented_forest_example(5))
-    #mrca_example(2)
+    mrca_example(3002)
 
 if __name__ == "__main__":
     main()
