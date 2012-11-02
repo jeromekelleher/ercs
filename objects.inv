@@ -1,13 +1,23 @@
 # Sphinx inventory version 1
 # Project: ercs
-# Version: 1.0.0
+# Version: 1.0
 _ercs mod index.html
 ercs mod index.html
+ercs.Simulator.sample attribute index.html
 _ercs.simulate function index.html
-ercs.Simulator.simulate method index.html
 ercs.DiscEventClass class index.html
+ercs.Simulator.max_lineage_memory attribute index.html
+ercs.Simulator.num_parents attribute index.html
+ercs.Simulator.torus_diameter attribute index.html
+ercs.Simulator.event_classes attribute index.html
+ercs.Simulator.kdtree_bucket_size attribute index.html
+ercs.Simulator.run method index.html
 ercs.Simulator class index.html
 ercs.MRCACalculator.get_mrca method index.html
+ercs.EventClass class index.html
 ercs.MRCACalculator class index.html
+ercs.Simulator.recombination_probabilities attribute index.html
+ercs.Simulator.max_kdtree_insertions attribute index.html
 ercs.GaussianEventClass class index.html
+ercs.Simulator.max_time attribute index.html
 ercs.torus_distance function index.html
