@@ -77,19 +77,18 @@ class Simulator(object):
             self.max_kdtree_insertions = 0    
         if self.kdtree_bucket_size == None:
             self.kdtree_bucket_size = 1
-        m = len(self.recombination_probabilities)
+        m = len(self.recombination_probabilities) + 1
         if self.max_lineages == None:
             self.max_lineages = 1000
         if self.num_parents == None:
             self.num_parents = 1 if m == 1 else 2 
 
-    def simulate(self, random_seed):
+    def run(self, random_seed):
         """
-        Runs the coalescent simulation for the parameters specified in this 
-        Simulator and the specified seed, and returns the 
-        simulated history, (pi, tau). The history consists of a list of 
-        oriented forests (one for each locus) and their corresponding 
-        node times (one for each locus).
+        Runs the coalescent simulation for the specified random seed, 
+        and returns the simulated history, (pi, tau). The history consists
+        of a list of oriented forests (one for each locus) and their
+        corresponding node times (one for each locus).
         
         :param random_seed: the value to initialise the random number
             generator
@@ -110,6 +109,13 @@ class Simulator(object):
                 self.recombination_probabilities, self.kdtree_bucket_size, 
                 self.max_kdtree_insertions, self.max_lineages, 
                 self.max_time, 0)
+        # trim the output and set pi[0] = -1
+        for j in range(len(pi)):
+            pi[j][0] = -1
+            tau[j][0] = -1
+            last_node = max(len(self.sample), max(pi[j])) + 1
+            pi[j] = pi[j][:last_node]
+            tau[j] =tau[j][:last_node]
         return pi, tau
 
 
@@ -121,7 +127,7 @@ class EventClass(object):
     """
     _TYPE = "type"
     _RATE = "rate"
-    def __init__(self, rate):
+    def __init__(self, rate=1.0):
         self._ll_representation = {self._RATE:rate}
         self.rate = rate
     
@@ -142,7 +148,7 @@ class DiscEventClass(EventClass):
     """
     _R = "r"
     _U = "u"
-    def __init__(self, rate, r, u):
+    def __init__(self, r, u, rate=1.0):
         super(DiscEventClass, self).__init__(rate)
         self.r = r
         self.u = u
@@ -161,7 +167,7 @@ class GaussianEventClass(EventClass):
     _THETA = "theta"
     _ALPHA = "alpha"
     _U0 = "u0"
-    def __init__(self, rate, theta, alpha, u0):
+    def __init__(self, theta, alpha, u0, rate=1.0):
         super(GaussianEventClass, self).__init__(rate)
         self.theta = theta
         self.alpha = alpha
@@ -180,13 +186,13 @@ class MRCACalculator(object):
     nodes in an oriented forest.
     
     This is an implementation of Schieber and Vishkin's nearest common ancestor 
-    algorithm from TAOCP volume 4A, pg.164-167. Preprocesses the input tree into a 
-    sideways heap in O(n) time and processes queries for the nearest common 
-    ancestor between an arbitary pair of nodes in O(1) time.
+    algorithm from TAOCP volume 4A, pg.164-167 [K11]_. Preprocesses the 
+    input tree into a sideways heap in O(n) time and processes queries for the 
+    nearest common ancestor between an arbitary pair of nodes in O(1) time.
     
     
     :param oriented_forest: the input oriented forest
-    :type oriented_forest: list of non-negative integers
+    :type oriented_forest: list of integers
     """
     LAMBDA = 0
 

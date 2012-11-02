@@ -254,9 +254,9 @@ out:
 "       the kdtree is rebuilt. If this parameter is 0 then the kdtree will "\
 "       not be rebuilt\n"\
 "   :type max_kdtree_insertions: unsigned integer\n"\
-"   :param max_lineages: The maximum number of extant lineages. The library "\
-"       preallocates memory to handle this number of lineages; if we run out "\
-"       during the course of simulation a LibraryError is raised\n"\
+"   :param max_lineage_memory: The maximum amount of memory used to store"\
+"       lineages in MiB. If the simulation exceeds this limit"\
+"       a LibraryError is raised.\n"\
 "   :type max_lineages: unsigned integer\n"\
 "   :param max_time: the maximum time we simulate back into the past. If this "\
 "       parameter is 0.0 the simulation will continue until all loci have "\

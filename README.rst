@@ -38,7 +38,7 @@ which must be installed before the ``ercs`` module can be built.
 Fortunately, this is straightforward on most platforms. For example, 
 on Debian or Ubuntu use::
 
-        $ sudo apt-get install gsl0-dev
+        $ sudo apt-get install libgsl0-dev
 
 or on Fedora::
 
@@ -68,7 +68,7 @@ Potential problems
 ******************
 
 On platforms that GSL is not available as part of the native packaging 
-system (or we had to install GSL locally because of non-root access)
+system (or GSL was installed locally because of non-root access)
 there can be issues with finding the correct headers and libraries
 when compiling ``ercs``. For example, on FreeBSD we get something 
 like this::

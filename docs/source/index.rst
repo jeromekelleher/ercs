@@ -1,8 +1,3 @@
-.. ercs documentation master file, created by
-   sphinx-quickstart on Wed Oct 10 15:46:07 2012.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Extinction/recolonisation coalescent simulator
 ==============================================
 
@@ -24,45 +19,85 @@ extinction/recolonisation model. See [E08]_, [BEV10]_, [BKE10]_  and [BEV12]_
 Examples
 -----------
 
-The most important features of ``ercs`` are illustrated by means of a series of 
-examples. 
+Simulating the coalescent for the extinction/recolonisation model using 
+:mod:`ercs` follows a basic pattern:
+
+1. Allocate an instance of :class:`ercs.Simulator`;
+
+2. Set the properties of the desired simulation by setting values to the 
+   attributes of this object;
+
+3. Run the simulation for a given random seed using the :meth:`ercs.Simulator.run`
+   method;
+
+4. Analyse the resulting genealogies to obtain the information of interest.
+
+In the following examples we look at the parameters of the simulation, the 
+structure of the simulated genealogies (and how we can analyse them) and 
+how we can use these tools to estimate values of interest.
 
 **************************
 Basic usage
 **************************
- 
-The basic pattern of usage for the ``ercs`` module is to allocate an instance of
-the Simulator class, set some attributes on this instance, and then run 
-simulate for some random seed. There are sensible defaults for most of the 
-parameters in Simulator, but we must provide values for at least two of them 
-before we can simulate. These are the ``sample`` and ``event_classes``
-attributes::
+
+To simulate the history of a set of individuals at a sample of 
+locations on a 2D torus, we first allocate an instance of the 
+:class:`ercs.Simulator` class. This class has a number of attributes
+which can be set to describe the parameters of the desired simulation.
+Most of these parameters have sensible defaults, but we must specify
+at least three of these before we can run a simulation. Here is a 
+simple example::
 
     import ercs
     
     def first_example(seed):
         sim = ercs.Simulator(20)
         sim.sample =  [(0, 0), (0, 5), (0, 10)]
-        sim.event_classes = [ercs.DiscEventClass(rate=1.0, u=0.5, r=1)]
-        return sim.simulate(seed) 
-   
-Here we allocate a simulator on a torus of diameter 20,  set up our
-sample and event classes, and the run the simulation. We specify a sample 
-of three lineages, located at points ``(0, 0)``, ``(0, 5)`` and ``(0, 10)``.
+        sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
+        return sim.run(seed) 
 
-Describe the event class.
+In this example we allocate a simulator on a torus of diameter 20,  
+set up our sample and event classes, and the run the simulation
+returning the resulting genealogy. The size of the torus is
+rather arbitrary, as the real size of the habitat that 
+we imagine our population evolving on is determined by the scale 
+of events relative to the size of the torus. Thus, the size of the 
+torus can be any value you wish, once the spatial extent of events 
+is scaled appropriately. For the following examples we'll tend to 
+use rather large events, as it's useful to have examples that 
+run quickly. These are very unrealistic evolutionary scenarios. 
+
+The initial locations of the lineages whose ancestry we wish to simulate
+are specified using the :attr:`ercs.Simulator.sample` attibute. These
+are 2-tuples describing locations in two dimensions on the torus.
+Here, we simulate the history of three locations, 
+``(0, 0)``, ``(0, 5)`` and ``(0, 10)``.
+
+Before we can simulate the history of this sample, we must describe the 
+model under which we imagine the population has evolved. This is done by 
+allocating some objects that describe the type of events that we 
+are interested in, and assigning these to the 
+`ercs.Simulator.event_classes` attribute. In the example above, 
+we state that all events in the simulation are from the Disc model, 
+and they have radius ``r =  1`` and impact ``u = 0.5``.
+There can be any number of event classes happening at different 
+rates: see `Event Classes`_ for details.
+
+After we have completed setting up the parameters of the simulation
+we can then run the simulation by calling the :meth:`ercs.Simulator.run`
+method.
 
 **************************
 Oriented trees and forests
 **************************
 
 The most part of ``ercs`` to understand is the way in which we encode 
-genealogies. Running the example aboAve, we get
+genealogies. Running the example above, we get
 
 >>> first_example(3)
-([[0, 4, 4, 5, 5, 0]], [[0.0, 0.0, 0.0, 0.0, 30441.574004183603, 46750.11224375103]])
+([[-1, 4, 4, 5, 5, 0]], [[-1, 0.0, 0.0, 0.0, 30441.574004183603, 46750.11224375103]])
 
-(Note there is nothing special about the seed 3 here - it is just a value which 
+(Note there is nothing special about the seed 3 here---it is just a value which 
 produced a neat example to discuss).
 This output completely describes the ancestry of the sample, although it's not immediately
 obvious how. In ``ercs`` we use *oriented trees* to represent the genealogy of a sample.
@@ -75,24 +110,32 @@ we can then represent an oriented tree very simply as a list of integers.
 
 In our example above, we have a list of three locations as our sample, and so we map 
 these to the integers ``1``, ``2`` and ``3`` (i.e., lineage ``1`` is sampled at 
-location ``(0, 0)`` and so on). The ``simulate`` method returns a tuple, ``(pi, tau)``;
+location ``(0, 0)`` and so on). The :meth:`ercs.Simulator.run` 
+method returns a tuple, ``(pi, tau)``;
 ``pi`` is a list of oriented forests (one for each locus) and ``tau`` is a list of 
 node times (one for each locus). In the example, we are dealing with a single locus 
-only, so ``pi`` is a list consisting of one list, ``[0, 4, 4, 5, 5, 0]``, that 
+only, so ``pi`` is a list consisting of one list, ``[-1, 4, 4, 5, 5, 0]``, that 
 encodes the following tree:
 
 .. image::  ../images/oriented-tree.svg
    :align: center 
    :alt: An oriented tree
-  
+
+It may be easier to see this if we explicity map the nodes to their parents:
+
+>>> pi, tau = first_example(3)
+>>> [(node, pi[0][node]) for node in range(1, len(pi[0]))]
+[(1, 4), (2, 4), (3, 5), (4, 5), (5, 0)]
+
+.. note:: The zero'th element of an oriented forest and its associated node 
+   time list is not used and is set to -1 by convention, 
+   following Knuth (Algorithm O, section 7.2.1.6) [K11]_. 
+
 The times labelled on the tree are derived from the node times list for this 
 locus, ``tau[0]``. The node times list associated with an oriented tree 
 records the time that the associated lineage entered the sample, looking 
 backwards in time (hence, for each node in the sample the time is ``0.0``).
 
-.. note:: The zero'th element of an oriented forest and its associated node 
-   time list is *not used* and is set to zero as a convenience only. Its value 
-   should not be counted on in any way, and may change in the future. 
 
 Oriented *forests* occur when there is more than one root in a list ``pi``, and 
 so we have a set of disconnected trees. This can happen when we specify
@@ -102,10 +145,10 @@ the sample has completely coalesced. Consider the following example::
     def oriented_forest_example(seed):
         L = 20
         sim = ercs.Simulator(L)
-        sim.event_classes = [ercs.DiscEventClass(rate=1.0, u=0.5, r=1)]
+        sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
         sim.sample = [(j, j) for j in range(10)]
         sim.max_time = 1e5
-        pi, tau = sim.simulate(seed)
+        pi, tau = sim.run(seed)
         return pi[0]
 
 Here we allocate a Simulator on a torus of diameter 20 as before and
@@ -116,7 +159,7 @@ interested in the structure of the genealogy this time, we just
 return the oriented forest at the first locus. Running this, we get 
 
 >>> oriented_forest_example(5)
-[0, 0, 15, 0, 12, 12, 13, 11, 13, 11, 16, 16, 14, 14, 15, 0, 0, 0, 0, 0]
+[-1, 0, 15, 0, 12, 12, 13, 11, 13, 11, 16, 16, 14, 14, 15, 0, 0]
 
 This corresponds to the forest:
 
@@ -124,11 +167,11 @@ This corresponds to the forest:
    :align: center 
    :alt: An oriented forest 
 
-(Note that this forest is **not** a correct representation of the 
-node times; in any simultation, node ``n + 1`` cannot be more recent 
-than node ``n``).
-In this forest there are *four* roots: 1, 3, 15 and 16 (we ignore the nodes 
-after 16 as they are all necessarily zero).
+In this forest there are *four* roots: 1, 3, 15 and 16.
+
+.. note:: This forest is **not** a correct representation of the 
+    node times; in any simultation, node ``n + 1`` cannot be more recent 
+    than node ``n``.
 
 
 ****************************
@@ -143,8 +186,8 @@ but it's not clear how we can get::
     def mrca_example(seed):
         sim = ercs.Simulator(40)
         sim.sample =  [(0, j) for j in range(10)]
-        sim.event_classes = [ercs.DiscEventClass(rate=1.0, u=0.5, r=1)]
-        pi, tau = sim.simulate(seed)
+        sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
+        pi, tau = sim.run(seed)
         sv = ercs.MRCACalculator(pi[0])
         print("d", "\t", "coal_time")
         for j in range(2, 11):
@@ -182,7 +225,7 @@ Parallelism
 
 The most common use of coalescent simulation is to estimate the distribution 
 of some quantity by aggregating over many different replicates. This is 
-done in ``ercs`` by running the ``simulate`` method with different random 
+done in ``ercs`` by running the ``run`` method with different random 
 seeds, one for each replicate. Since each replicate is then completely 
 independant, we can easily parallise the process. One possible way 
 to this is using the :mod:`multiprocessing` module::
@@ -190,17 +233,17 @@ to this is using the :mod:`multiprocessing` module::
     import ercs
     import multiprocessing
 
-    def parallel_simulate(seed):
+    def parallel_run(seed):
         sim = ercs.Simulator(50)
         sim.sample = [(1, 1), (2, 2)]
-        sim.event_classes = [ercs.DiscEventClass(rate=1.0, u=0.5, r=1)]
-        pi, tau = sim.simulate(seed) 
+        sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
+        pi, tau = sim.run(seed) 
         coal_time = tau[0][3]
         return coal_time 
 
     def parallel_example(num_replicates):
         pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())       
-        coal_times = pool.map(parallel_simulate, range(1, num_replicates + 1)) 
+        coal_times = pool.map(parallel_run, range(1, num_replicates + 1)) 
         return sum(coal_times) / num_replicates
 
 In this example we are working on a torus of diameter 100, so the simulations 
@@ -212,7 +255,7 @@ replicates across these cores.
 2968953.9276501946
 
 This is the mean coalescence time among 100 replicates. The multiprocessing 
-module runs ``parallel_simulate`` function for each of the seeds in 
+module runs ``parallel_run`` function for each of the seeds in 
 a subprocess and collects the coalescence times into the list 
 ``coal_times``. We then take the mean of this list and return it.
 The random seeds are simply the integers from 1 to 100. This is a perfectly
@@ -286,7 +329,7 @@ and several other articles for details of the Disc model, and see
         
         **Default value:** Specified at instantiation time.
 
-    .. attribute:: num_parents (default=1)
+    .. attribute:: num_parents 
 
        The number of parents in each event. For a single locus simulation 
        there must be at least one parent and for multi-locus simulations 
@@ -355,7 +398,7 @@ and several other articles for details of the Disc model, and see
        
        **Default value:** 0 
 
-    .. automethod:: simulate
+    .. automethod:: run
 
 
 
@@ -402,6 +445,8 @@ Bibliography
 .. [BEV12] N. H.  Barton,  A. M. Etheridge and A. V\ |eacute|\ ber. 
     Modelling Evolution in a Spatial continuum,
     *J. Stat. Mech.*, to appear, 2012.
+.. [K11] D. E. Knuth, Combinatorial Algorithms, Part 1; Volume 4A of *The Art of Computer
+    Programming*, 2011.
 
 .. include:: <isolat1.txt>
 

@@ -9,11 +9,11 @@ import random
 import multiprocessing
 
 
-def parallel_simulate(seed):
+def parallel_run(seed):
     sim = ercs.Simulator(100)
     sim.sample =  [(1, 1), (2, 2)]
-    sim.event_classes = [ercs.DiscEventClass(rate=1.0, u=0.5, r=1)]
-    pi, tau = sim.simulate(seed) 
+    sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
+    pi, tau = sim.run(seed) 
     coal_time = tau[0][3]
     return coal_time 
 
@@ -23,7 +23,7 @@ def multiprocessing_example():
     
     
     seeds = [random.randint(0, sys.maxsize) for j in range(num_replicates)]
-    coal_times = pool.map(parallel_simulate, seeds) 
+    coal_times = pool.map(parallel_run, seeds) 
     
     
     print("Mean coalescence time =", sum(coal_times) / num_replicates)
@@ -33,23 +33,22 @@ def multiprocessing_example():
 def first_example(seed):
     sim = ercs.Simulator(20)
     sim.sample =  [(0, 0), (0, 5), (0, 10)]
-    sim.event_classes = [ercs.DiscEventClass(rate=1.0, u=0.5, r=1)]
-    return sim.simulate(seed) 
+    sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
+    return sim.run(seed) 
 
 def oriented_forest_example(seed):
-    L = 20
-    sim = ercs.Simulator(L)
+    sim = ercs.Simulator(20)
     sim.sample = [(j, j) for j in range(10)]
-    sim.event_classes = [ercs.DiscEventClass(rate=1.0, u=0.5, r=1)]
+    sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
     sim.max_time = 1e5
-    pi, tau = sim.simulate(seed)
+    pi, tau = sim.run(seed)
     return pi[0]
 
 def mrca_example(seed):
     sim = ercs.Simulator(40)
     sim.sample =  [(0, j) for j in range(10)]
-    sim.event_classes = [ercs.DiscEventClass(rate=1.0, u=0.5, r=1)]
-    pi, tau = sim.simulate(seed)
+    sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
+    pi, tau = sim.run(seed)
     sv = ercs.MRCACalculator(pi[0])
     print("d", "\t", "coal_time")
     for j in range(2, 11):
@@ -68,7 +67,7 @@ def tmp():
 
 
     for i in range(5):
-        pi, tau = sim.simulate(i)
+        pi, tau = sim.run(i)
         print(pi, tau)
     
    
@@ -78,9 +77,9 @@ def main():
     #tmp()
     #multiprocessing_example()
     #nca_example()
-    #print(first_example(3))
+    print(first_example(3))
     #print(oriented_forest_example(5))
-    mrca_example(2)
+    #mrca_example(2)
 
 if __name__ == "__main__":
     main()
