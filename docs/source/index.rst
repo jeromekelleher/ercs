@@ -308,7 +308,23 @@ This is illustrated in the following example::
         sim.recombination_probabilities = [0.1 for j in range(500)]
         pi, tau = sim.run(1)
 
+>>> out_of_memory_example()
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "example.py", line 77, in out_of_memory_example
+    pi, tau = sim.run(1)
+  File "ercs.py", line 116, in run
+     self.max_time, 0)
+_ercs.LibraryError: Out of lineage memory
 
+The example fails because we try to simulate 500 locus individuals with 
+only one MiB of memory. There are two things we can do to alleviate 
+this problem:
+
+1. Increase the amount of memory available to the library;
+
+2. Stop the simulation before it runs out of memory using the 
+   :attr:`ercs.Simulator.max_time` attribute.
 
 
 

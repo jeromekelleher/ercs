@@ -78,7 +78,7 @@ typedef struct ercs_t_t {
     unsigned int num_parents;
     unsigned int sample_size;
     unsigned int num_event_classes;
-    unsigned int max_lineages;
+    unsigned int max_lineage_memory;
     unsigned int kdtree_bucket_size;
     unsigned int max_kdtree_insertions;
     long random_seed; 
@@ -91,6 +91,7 @@ typedef struct ercs_t_t {
     gsl_rng *rng;
     kdtree_t *kdtree;
     /* lineage memory management */
+    unsigned int max_lineages;
     lineage_t *lineage_mem;
     lineage_t **lineage_heap;
     int lineage_heap_top;

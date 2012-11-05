@@ -72,7 +72,7 @@ def out_of_memory_example():
     sim = ercs.Simulator(40)
     sim.sample = [None] + [(10, 10), (20, 10)]
     sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
-    sim.max_lineage_memory = 1
+    sim.max_lineage_memory = 1 
     sim.recombination_probabilities = [0.1 for j in range(500)]
     pi, tau = sim.run(1)
 

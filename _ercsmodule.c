@@ -292,7 +292,7 @@ pyercs_simulate(PyObject *self, PyObject *args)
                 &PyList_Type, &py_recombination,
                 &sim->kdtree_bucket_size,
                 &sim->max_kdtree_insertions,
-                &sim->max_lineages,
+                &sim->max_lineage_memory,
                 &sim->max_time,
                 &ancestry_algorithm /* unused */)) {
         goto out; 

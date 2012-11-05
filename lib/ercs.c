@@ -509,10 +509,18 @@ ercs_initialise(ercs_t *self)
     unsigned int j;
     unsigned int m = self->num_loci;
     unsigned int n = self->sample_size;
+    size_t lineage_memory = (1024 * 1024 * self->max_lineage_memory);
     lineage_t **sample = xmalloc(n * sizeof(lineage_t *));
     const gsl_rng_type *rng_type = gsl_rng_mt19937;
     self->rng = gsl_rng_alloc(rng_type);
     gsl_rng_set(self->rng, self->random_seed);                                               
+    /* calculate the max-lineages, given the number of loci 
+     * This is very approximate, and will vary for ancestry algorithms.
+     * TODO: make this more precise.
+     */
+    self->max_lineages = lineage_memory / (
+            (m * sizeof(int)) + sizeof(lineage_t) + sizeof(lineage_t *));
+    self->max_lineages = GSL_MAX(1, self->max_lineages);
     self->lineage_mem = xmalloc(self->max_lineages * sizeof(lineage_t));
     self->lineage_heap = xmalloc(self->max_lineages * sizeof(lineage_t *));
     for (j = 0; j < self->max_lineages; j++) {
