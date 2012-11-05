@@ -1,23 +1,6 @@
-# Sphinx inventory version 1
+# Sphinx inventory version 2
 # Project: ercs
 # Version: 1.0
-_ercs mod index.html
-ercs mod index.html
-ercs.Simulator.sample attribute index.html
-_ercs.simulate function index.html
-ercs.DiscEventClass class index.html
-ercs.Simulator.max_lineage_memory attribute index.html
-ercs.Simulator.num_parents attribute index.html
-ercs.Simulator.torus_diameter attribute index.html
-ercs.Simulator.event_classes attribute index.html
-ercs.Simulator.kdtree_bucket_size attribute index.html
-ercs.Simulator.run method index.html
-ercs.Simulator class index.html
-ercs.MRCACalculator.get_mrca method index.html
-ercs.EventClass class index.html
-ercs.MRCACalculator class index.html
-ercs.Simulator.recombination_probabilities attribute index.html
-ercs.Simulator.max_kdtree_insertions attribute index.html
-ercs.GaussianEventClass class index.html
-ercs.Simulator.max_time attribute index.html
-ercs.torus_distance function index.html
+# The remainder of this file is compressed using zlib.
+xÚ“ËNÃ0E÷ı
+K°MD·İ¡‚‹Jˆ~€5±‡vT?"{ŒZ¾çQÑ–ˆ$,"E“sçÎ+Ökr"²^¨Ğˆb)êSaûå­¹¯“AñÚ„;t¢s´WthDjv±ÛvÀìp!1¨˜ÍW¶s{	»Xq/ŠÅ¬Ü’MØ‡2‚­3uÀ¨JŒby)m4m	eìD-ü‘œbòî7{SÆp®¿€Öë‰¢zşDÇk±ÅUû2Lÿ´cá(9Ìƒ“­§‘Önô.YYCÈÆq0?)JM`‘1ÌÓbÓ¨lÄ™¶ÍQVIe¤/œ§Éµ»@Ş{=F­aó¾~\ƒQ}î]®È£Ó}í0ı,*o+rĞÜ¬¬ƒ¯ "CLsçİÜW?srC“oRŠH1¸ÿ5“´ÚóF§F~ÕoÊÆº
