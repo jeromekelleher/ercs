@@ -118,9 +118,10 @@ node times (one for each locus). In the example, we are dealing with a single lo
 only, so ``pi`` is a list consisting of one list, ``[-1, 4, 4, 5, 5, 0]``, that 
 encodes the following tree:
 
-.. image::  ../images/oriented-tree.svg
+.. image::  ../images/oriented-tree.png
    :align: center 
    :alt: An oriented tree
+   :width: 15cm
 
 It may be easier to see this if we explicity map the nodes to their parents:
 
@@ -164,9 +165,10 @@ return the oriented forest at the first locus. Running this, we get
 
 This corresponds to the forest:
 
-.. image::  ../images/oriented-forest.svg
+.. image::  ../images/oriented-forest.png
    :align: center 
    :alt: An oriented forest 
+   :width: 15cm
 
 In this forest there are *four* roots: 1, 3, 15 and 16.
 
