@@ -13,7 +13,7 @@ _ercs_module = Extension('_ercs',
 
 setup(
     name = "ercs",
-    version = "1.0.4-dev",
+    version = "1.0.5-dev",
     description = "Extinction/recolonisation coalescent simulator",
     author = "Jerome Kelleher",
     author_email = "jerome.kelleher@ed.ac.uk",

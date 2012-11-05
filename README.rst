@@ -25,7 +25,7 @@ Here's a quick example for the impatient::
         sim = ercs.Simulator(10)
         sim.sample =  [(1, 1), (2, 2), (3, 3)]
         sim.event_classes = [ercs.DiscEventClass(rate=1.0, u=0.5, r=1)]
-        pi, tau = sim.simulate(1)
+        pi, tau = sim.run(1)
 
 Full documentation for ``ercs`` is available at `<http://jeromekelleher.github.com/ercs>`_.
 
