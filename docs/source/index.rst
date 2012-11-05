@@ -11,9 +11,21 @@ Extinction/recolonisation coalescent simulator
 Introduction
 ------------
 
-This document provides a reference to the ``ercs`` Python module, which provides 
-a straightforward interface to coalescent simulations of the 
-extinction/recolonisation model. See [E08]_, [BEV10]_, [BKE10]_  and [BEV12]_
+The extinction/recolonisation model (or the spatial Lambda-Fleming-Viot process)
+is a recently-introduced model of populations evolving in continuous space.
+In this model, individuals occupy a fixed location and all movement and 
+reproduction occur as a result of extinction/recolonisation *events*. Events 
+fall randomly in space, independent of the location of extant individuals.
+In each event some fraction of the 
+local population dies and are replaced by the descendants of a small
+number of parents, drawn randomly from the population immediately 
+before the event.  See [E08]_, [BEV10]_, [BKE10]_  and [BEV12]_ for 
+extensive discussions of the model, its background, and mathematical 
+results.
+
+Here we document the :mod:`ercs` Python module, 
+which provides a straightforward interface to coalescent simulations 
+of this model. 
 
 -----------
 Examples
@@ -68,7 +80,7 @@ use rather large events, as it's useful to have examples that
 run quickly. These are very unrealistic evolutionary scenarios. 
 
 The initial locations of the lineages whose ancestry we wish to simulate
-are specified using the :attr:`ercs.Simulator.sample` attibute. These
+are specified using the :attr:`ercs.Simulator.sample` attribute. These
 are 2-tuples describing locations in two dimensions on the torus.
 Here, we simulate the history of three locations, 
 ``(0, 0)``, ``(0, 5)`` and ``(0, 10)``.
@@ -123,7 +135,7 @@ encodes the following tree:
    :alt: An oriented tree
    :width: 15cm
 
-It may be easier to see this if we explicity map the nodes to their parents:
+It may be easier to see this if we explicitly map the nodes to their parents:
 
 >>> pi, tau = first_example(3)
 >>> [(node, pi[0][node]) for node in range(1, len(pi[0]))]
@@ -173,7 +185,7 @@ This corresponds to the forest:
 In this forest there are *four* roots: 1, 3, 15 and 16.
 
 .. note:: This forest is **not** a correct representation of the 
-    node times; in any simultation, node ``n + 1`` cannot be more recent 
+    node times; in any simulation, node ``n + 1`` cannot be more recent 
     than node ``n``.
 
 
@@ -191,7 +203,7 @@ times list to find the time that this node entered the sample.
 
 Suppose we wished to find the coalescence time for a set of  
 lineages sampled at a regular set of distances. We can set our 
-sample so that the lineages are located at the relevent distances,
+sample so that the lineages are located at the relevant distances,
 but it's not clear how we can get::
     
     def mrca_example(seed):
@@ -251,7 +263,7 @@ single replicate::
 Multiple loci
 ****************************
 
-For meaningful multilocus simulations we must specifify the rate at which 
+For meaningful multilocus simulations we must specify the rate at which 
 recombination occurs between loci. In the extinction/recolonisation model 
 this is done by describing the probability that two adjacent loci ``l`` 
 and ``l + 1`` descend from different parents at an event. Therefore, in 
@@ -260,7 +272,7 @@ probabilities to describe the system in a general way.
 
 The :attr:`ercs.Simulator.recombination_probabilities` attribute is then used 
 to describe both the number of loci and the recombination rates between them.
-By default, this attibute is set to the empty list. In the following example
+By default, this attribute is set to the empty list. In the following example
 we compute the joint probability of identity in state given a mutation 
 rate ``mu`` at two loci in a single 
 replicate::
@@ -291,8 +303,8 @@ Running this example gives us:
 The example above shows how we can simulate two loci. This can be generalised
 to larger numbers of loci in a straightforward way. However, since the number 
 of lineages can grow to be very large when we deal with large numbers of loci,
-it is necessary to become more familiar with some more advanced properties 
-of the simulation.
+it may be necessary to become more familiar with some more advanced properties 
+of the simulation implementation.
 
 The first issue is to decide how much memory you are willing to dedicate 
 to the task of tracking lineages. The C library allocates all its memory in 
@@ -326,7 +338,13 @@ this problem:
 2. Stop the simulation before it runs out of memory using the 
    :attr:`ercs.Simulator.max_time` attribute.
 
-
+Lineages are indexed using a kdtree to allow us to find 
+the lineages that may potentially be hit by an event 
+efficiently. The 
+:attr:`ercs.Simulator.kdtree_bucket_size` 
+:attr:`ercs.Simulator.max_kdtree_insertions` 
+attributes provide a means of tuning this data structure for 
+performance when very large numbers of lineages are involved.
 
 **************************
 Parallelism
@@ -336,7 +354,7 @@ The most common use of coalescent simulation is to estimate the distribution
 of some quantity by aggregating over many different replicates. This is 
 done in ``ercs`` by running the ``run`` method with different random 
 seeds, one for each replicate. Since each replicate is then completely 
-independant, we can easily parallise the process. One possible way 
+independent, we can easily parallelise the process. One possible way 
 to this is using the :mod:`multiprocessing` module::
     
     import ercs
@@ -379,7 +397,7 @@ One way to do this is::
     seeds = [random.randint(1, 2**31 - 1) for j in range(100)]
 
 There is no issue with using the Python random generator within your
-code, as the ``ercs`` C library generates random numbers independantly 
+code, as the ``ercs`` C library generates random numbers independently 
 of Python (using the ``mt19937`` random number generator from the 
 `GNU Scientific Library 
 <http://www.gnu.org/software/gsl/manual/html_node/Random-number-generator-algorithms.html>`_).
@@ -436,7 +454,7 @@ and several other articles for details of the Disc model, and see
         The diameter of the torus we are simulating on. This defines the 
         size of the space that lineages can move around in. 
         
-        **Default value:** Specified at instantiation time.
+        **Default value:** Specified at substantiation time.
 
     .. attribute:: num_parents 
 
@@ -451,9 +469,9 @@ and several other articles for details of the Disc model, and see
        The list of inter-locus recombination probabilities; the length of 
        this list also determines the number of loci for each individual.
        At an event, the probability of locus ``j`` and ``j + 1`` descending 
-       from different parents is ``recombination_probablities[j]``.
+       from different parents is ``recombination_probabilities[j]``.
        The number of loci in the simulation is therefore 
-       ``len(recombination_probablities) + 1``.
+       ``len(recombination_probabilities) + 1``.
        
        **Default value:** The empty list [] (so, we have a single locus 
        simulation by default).
@@ -481,7 +499,7 @@ and several other articles for details of the Disc model, and see
 
        The number of locations in a leaf node of the kdtree; must be a power of 
        two, greater than 0. The ``kdtree_bucket_size``
-       is an advanced parameter that may be useful in tuning preformance when very 
+       is an advanced parameter that may be useful in tuning performance when very 
        large numbers of lineages are involved. Larger values will result in less 
        time and memory spent indexing the lineages, but more lineages will need to
        be tested to see if they are within the critical radius of the event. **Note:**
