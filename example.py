@@ -58,6 +58,25 @@ def mrca_example(seed):
         print(distance, "\t", coal_time)
 
 
+def two_locus_example(seed, mu):
+    sim = ercs.Simulator(40)
+    sim.sample = [None] + [(10, 10), (20, 10)]
+    sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
+    sim.recombination_probabilities = [0.1]
+    pi, tau = sim.run(seed)
+    t1 = tau[0][ercs.MRCACalculator(pi[0]).get_mrca(1, 2)]
+    t2 = tau[1][ercs.MRCACalculator(pi[1]).get_mrca(1, 2)]
+    return math.exp(-2 * mu * t1) * math.exp(-2 * mu * t2)
+
+def out_of_memory_example():
+    sim = ercs.Simulator(40)
+    sim.sample = [None] + [(10, 10), (20, 10)]
+    sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
+    sim.max_lineage_memory = 1
+    sim.recombination_probabilities = [0.1 for j in range(500)]
+    pi, tau = sim.run(1)
+
+
 def tmp():
     sim = ercs.Simulator(10)
     sim.sample =  [(1, 1), (2, 2), (3, 3)]
@@ -80,7 +99,10 @@ def main():
     #nca_example()
     #print(first_example(3))
     #print(oriented_forest_example(5))
-    mrca_example(3002)
+    #mrca_example(3002)
+    #print(two_locus_example(30, 1e-7))
+    #
+    out_of_memory_example()
 
 if __name__ == "__main__":
     main()

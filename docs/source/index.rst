@@ -220,12 +220,96 @@ Running this
 7.0      263761.554043
 8.0      263761.554043
 
+****************************
+Multiple event classes
+****************************
 
+Up to this point we have considered models in which a single class 
+of event occurs at rate 1.0. We can simulate an arbitrary number 
+of event classes happening at different rates, however; we simply
+set the :attr:`ercs.Simulator.event_classes` attribute to a list 
+consisting of :class:`ercs.EventClass` instances with the required rates and 
+properties.
+
+For example, Figure 2 of [BEV12]_  plots the probability of identity in
+state for three event regimes: one in which we have small events only;
+another in which we have large events only; and finally a regime
+in which we have a mixture of the two. The following example 
+returns the probability of identity for evenly spaced samples in a 
+single replicate::
+    
+    def mixed_events_example(seed):
+        L = 40
+        sim = ercs.Simulator(L)
+        sim.sample = [None] + [(0, j) for j in range(1, 10)]
+        sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
+        pi, tau = sim.run(seed)
+        sv = ercs.MRCACalculator(pi[0])
+        # TODO  Fill me in. 
+        
 ****************************
 Multiple loci
 ****************************
 
-Dealing with multiple loci.
+For meaningful multilocus simulations we must specifify the rate at which 
+recombination occurs between loci. In the extinction/recolonisation model 
+this is done by describing the probability that two adjacent loci ``l`` 
+and ``l + 1`` descend from different parents at an event. Therefore, in 
+a system of ``m`` loci, we need a list of ``m - 1`` recombination 
+probabilities to describe the system in a general way.
+
+The :attr:`ercs.Simulator.recombination_probabilities` attribute is then used 
+to describe both the number of loci and the recombination rates between them.
+By default, this attibute is set to the empty list. In the following example
+we compute the joint probability of identity in state given a mutation 
+rate ``mu`` at two loci in a single 
+replicate::
+    
+    def two_locus_example(seed, mu):
+        sim = ercs.Simulator(40)
+        sim.sample = [None] + [(10, 10), (20, 10)]
+        sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
+        sim.recombination_probabilities = [0.1]
+        pi, tau = sim.run(seed)
+        t1 = tau[0][ercs.MRCACalculator(pi[0]).get_mrca(1, 2)]
+        t2 = tau[1][ercs.MRCACalculator(pi[1]).get_mrca(1, 2)]
+        return math.exp(-2 * mu * t1) * math.exp(-2 * mu * t2)
+
+(Since our sample is of size two, the MRCA of nodes ``1`` and ``2`` must 
+be ``3``, so we don't really need to allocate :class:`ercs.MRCACalculator`
+objects in this instance. However, in general we need to allocate a different
+:class:`ercs.MRCACalculator` for each locus.)
+
+Running this example gives us:
+
+>>> two_locus_example(30, 1e-7)
+0.06931300943428219
+
+.. note:: Loci are zero-indexed in the usual Python way, unlike individuals 
+    in the sample.
+
+The example above shows how we can simulate two loci. This can be generalised
+to larger numbers of loci in a straightforward way. However, since the number 
+of lineages can grow to be very large when we deal with large numbers of loci,
+it is necessary to become more familiar with some more advanced properties 
+of the simulation.
+
+The first issue is to decide how much memory you are willing to dedicate 
+to the task of tracking lineages. The C library allocates all its memory in 
+advance and fails in a predictable way when it reaches the point in the
+simulation where there are too many lineages to fit into this space. 
+This is illustrated in the following example::
+
+    def out_of_memory_example():
+        sim = ercs.Simulator(40)
+        sim.sample = [None] + [(10, 10), (20, 10)]
+        sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
+        sim.max_lineage_memory = 1
+        sim.recombination_probabilities = [0.1 for j in range(500)]
+        pi, tau = sim.run(1)
+
+
+
 
 
 **************************
