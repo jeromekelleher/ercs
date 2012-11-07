@@ -84,7 +84,7 @@ read_recombination_probabilities(ercs_t *self, config_t *config)
 static void
 read_sample(ercs_t *self, config_t *config)
 {
-    int j;
+    unsigned int j;
     config_setting_t *s;
     config_setting_t *setting = config_lookup(config, "sample"); 
     if (setting == NULL) {
@@ -135,7 +135,7 @@ read_events(ercs_t *self, config_t *config)
         fatal_error("events must be > 0");
     }
     self->event_classes = xmalloc(e * sizeof(event_class_t));
-    for (j = 0; j < e; j++) {
+    for (j = 0; j < (int) e; j++) {
         s = config_setting_get_elem(setting, j);
         if (s == NULL) {
             fatal_error("error reading events[%d]", j);
@@ -193,9 +193,6 @@ read_events(ercs_t *self, config_t *config)
         
     }
 }
-
-
-
 
 
 static void 
@@ -260,6 +257,7 @@ int
 main(int argc, char** argv)
 {
     int ret;
+    int not_done = 1;
     ercs_t *self = xcalloc(1, sizeof(ercs_t));
     if (argc != 2) {
         fatal_error("usage: ercs <configuration file>");
@@ -267,8 +265,11 @@ main(int argc, char** argv)
     read_config(self, argv[1]); 
     ret = ercs_initialise(self);
     ERROR_CHECK(ret, out); 
-    ret = ercs_simulate(self);
-    ERROR_CHECK(ret, out);
+    while (not_done) {
+        ret = ercs_simulate(self, 1<<31);
+        ERROR_CHECK(ret, out);
+        not_done = ret == ERCS_SIM_NOT_DONE;
+    }
     ercs_print_state(self);
    
 out:

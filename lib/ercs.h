@@ -22,6 +22,10 @@
 
 #include <gsl/gsl_rng.h>
 
+#define ERCS_SIM_DONE 0
+#define ERCS_SIM_NOT_DONE 1
+
+
 /* Errors */
 #define OUT_OF_LINEAGES     201
 #define OUT_OF_ANCESTRIES   202
@@ -78,9 +82,9 @@ typedef struct ercs_t_t {
     unsigned int num_parents;
     unsigned int sample_size;
     unsigned int num_event_classes;
-    unsigned int max_lineage_memory;
     unsigned int kdtree_bucket_size;
     unsigned int max_kdtree_insertions;
+    unsigned int max_lineages;
     long random_seed; 
     double torus_edge;
     double max_time;
@@ -90,15 +94,23 @@ typedef struct ercs_t_t {
     /* state */
     gsl_rng *rng;
     kdtree_t *kdtree;
-    /* lineage memory management */
-    unsigned int max_lineages;
-    lineage_t *lineage_mem;
-    lineage_t **lineage_heap;
-    int lineage_heap_top;
+    kri_t *kdtree_iterator;
+    point_t **insertion_buffer;
+    lineage_t **parents_buffer;
+    lineage_t **children_buffer;
+    unsigned int kdtree_insertions;
+    double *event_probabilities;
+    double total_event_rate; 
+    double time;
     /* algorithm state */ 
+    unsigned int kappa;
     int *eta;
     int **pi;
     double **tau;
+    /* lineage memory management */
+    lineage_t *lineage_mem;
+    lineage_t **lineage_heap;
+    int lineage_heap_top;
     /* ancestry algorithm */ 
     void * (*aa_initialise)(struct ercs_t_t *);
     void * (*aa_get_initial_ancestry)(struct ercs_t_t *, int);
@@ -115,7 +127,7 @@ void alloc_gaussian_event_class(event_class_t *event, double, double, double,
 void alloc_disc_event_class(event_class_t *, double, double, double);
 
 int ercs_initialise(ercs_t *);
-int ercs_simulate(ercs_t *);
+int ercs_simulate(ercs_t *, unsigned int);
 void ercs_print_state(ercs_t *);
 void ercs_free(ercs_t *);
 const char *ercs_error_str(int);

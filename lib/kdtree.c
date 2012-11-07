@@ -515,7 +515,7 @@ kdtree_build(kdtree_t *self, kd_internal_node *root, point_t **points,
     se->right = num_points - 1;
     se->flags = 0;
     while (s >= 0) {
-        assert(s < stack_size);
+        assert(s < (int) stack_size);
         se = &stack[s];                    
         self->depth = (unsigned int) s > self->depth? 
                 (unsigned int) s: self->depth;
@@ -856,7 +856,6 @@ kdtree_copy_points(kdtree_t *self, point_t **points)
     unsigned int i;
     kd_external_node *tnode;
     list_node *next_lnode;
-
     ret = kdtree_get_buckets_in_region(self, min_bounds, max_bounds); 
     ERROR_CHECK(ret, out);
     a = self->node_set->list;

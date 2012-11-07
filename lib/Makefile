@@ -1,4 +1,5 @@
-CFLAGS=
+#CFLAGS=
+CFLAGS=-Wall -Wextra
 LDFLAGS=-lm -lgsl -lgslcblas
 MAIN_LDFLAGS=${LDFLAGS} -lconfig 
 ALL_SRC=ercs.c util.c kdtree.c torus.c

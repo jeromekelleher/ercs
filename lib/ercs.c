@@ -259,6 +259,7 @@ alloc_disc_event_class(event_class_t *event, double rate, double r, double u)
 static void
 aa_linear_print_state(ercs_t *self)
 {
+    printf("%p", self);
 }
 
 static void
@@ -332,7 +333,9 @@ aa_linear_get_initial_ancestry(ercs_t *self, int value)
     return a;
 }
 
-
+/*
+ * TODO tidy this up.
+ */
 int 
 aa_linear_coalesce(ercs_t *self, lineage_t **children, unsigned int num_children, 
         double t, lineage_t **parents, unsigned int *s_p)
@@ -499,97 +502,6 @@ ercs_alloc_lineage(ercs_t *self)
     return lineage;
 }
 
-
-
-int
-ercs_initialise(ercs_t *self)
-{
-    int ret = 0;
-    double *x;
-    unsigned int j;
-    unsigned int m = self->num_loci;
-    unsigned int n = self->sample_size;
-    size_t lineage_memory = (1024 * 1024 * self->max_lineage_memory);
-    lineage_t **sample = xmalloc(n * sizeof(lineage_t *));
-    const gsl_rng_type *rng_type = gsl_rng_mt19937;
-    self->rng = gsl_rng_alloc(rng_type);
-    gsl_rng_set(self->rng, self->random_seed);                                               
-    /* calculate the max-lineages, given the number of loci 
-     * This is very approximate, and will vary for ancestry algorithms.
-     * TODO: make this more precise.
-     */
-    self->max_lineages = lineage_memory / (
-            (m * sizeof(int)) + sizeof(lineage_t) + sizeof(lineage_t *));
-    self->max_lineages = GSL_MAX(1, self->max_lineages);
-    self->lineage_mem = xmalloc(self->max_lineages * sizeof(lineage_t));
-    self->lineage_heap = xmalloc(self->max_lineages * sizeof(lineage_t *));
-    for (j = 0; j < self->max_lineages; j++) {
-        self->lineage_heap[j] = self->lineage_mem + j;
-    }    
-    self->lineage_heap_top = self->max_lineages - 1;
-    self->pi = xmalloc(m * sizeof(int *));
-    self->tau = xmalloc(m * sizeof(double *));
-    self->eta = xmalloc(m * sizeof(int));
-    for (j = 0; j < m; j++) {
-        self->pi[j] = xcalloc(2 * n, sizeof(int));
-        self->tau[j] = xcalloc(2 * n, sizeof(double));
-        self->eta[j] = (int) n + 1;
-    }
-    self->kdtree = xmalloc(sizeof(kdtree_t));
-    self->aa_initialise = aa_linear_initialise;
-    self->aa_get_initial_ancestry = aa_linear_get_initial_ancestry;
-    self->aa_print_state = aa_linear_print_state;
-    self->aa_print_ancestry = aa_linear_print_ancestry;
-    self->aa_free = aa_linear_free;
-    self->aa_coalesce = aa_linear_coalesce;
-    self->aa_state = self->aa_initialise(self);
-    /* All mallocing is done - we can now do things that might fail */ 
-    ret = kdtree_init(self->kdtree, self->max_lineages, self->kdtree_bucket_size, 
-            self->random_seed); 
-    ERROR_CHECK(ret, out);
-    for (j = 0; j < n; j++) {
-        x =  self->sample + 2 * j;
-        sample[j] = ercs_alloc_lineage(self);
-        if (sample[j] == NULL) {
-            ret = -OUT_OF_LINEAGES;
-            goto out;
-        }
-        sample[j]->location[0] = x[0];
-        sample[j]->location[1] = x[1];
-        sample[j]->ancestry = self->aa_get_initial_ancestry(self, (int) j + 1);
-        if (sample[j]->ancestry == NULL) {
-            ret = -OUT_OF_ANCESTRIES;
-            goto out;
-        }
-
-    }
-    ret = kdtree_build(self->kdtree, NULL, (point_t **) sample, n);
-    ERROR_CHECK(ret, out);
-out:
-    free(sample);
-    return ret;
-}
-
-void
-ercs_free(ercs_t *self)
-{
-    unsigned int j;
-    for (j = 0; j < self->num_loci; j++) {
-        free(self->pi[j]);
-        free(self->tau[j]);
-    }
-    free(self->pi);
-    free(self->tau); 
-    free(self->eta);
-    
-    self->aa_free(self);
-    free(self->lineage_heap);
-    free(self->lineage_mem);
-    kdtree_free(self->kdtree);
-    free(self->kdtree);
-    gsl_rng_free(self->rng);
-}
-
 int 
 ercs_sanity_check(ercs_t *self) 
 {
@@ -655,50 +567,151 @@ out:
 }
 
 
+int
+ercs_initialise(ercs_t *self)
+{
+    int ret = 0;
+    double *x;
+    unsigned int j;
+    unsigned int m = self->num_loci;
+    unsigned int n = self->sample_size;
+    lineage_t **sample = xmalloc(n * sizeof(lineage_t *));
+    const gsl_rng_type *rng_type = gsl_rng_mt19937;
+    self->rng = gsl_rng_alloc(rng_type);
+    gsl_rng_set(self->rng, self->random_seed);                                               
+    self->lineage_mem = xmalloc(self->max_lineages * sizeof(lineage_t));
+    self->lineage_heap = xmalloc(self->max_lineages * sizeof(lineage_t *));
+    for (j = 0; j < self->max_lineages; j++) {
+        self->lineage_heap[j] = self->lineage_mem + j;
+    }    
+    self->lineage_heap_top = self->max_lineages - 1;
+    /* set the initial conditions for the algorithm structures */
+    self->kappa = n * m;
+    self->pi = xmalloc(m * sizeof(int *));
+    self->tau = xmalloc(m * sizeof(double *));
+    self->eta = xmalloc(m * sizeof(int));
+    for (j = 0; j < m; j++) {
+        self->pi[j] = xcalloc(2 * n, sizeof(int));
+        self->tau[j] = xcalloc(2 * n, sizeof(double));
+        self->eta[j] = (int) n + 1;
+    }
+    self->kdtree = xmalloc(sizeof(kdtree_t));
+    self->kdtree_iterator = xmalloc(sizeof(kri_t));
+    self->insertion_buffer = xmalloc(self->num_parents * sizeof(point_t *));
+    self->parents_buffer = xmalloc(self->num_parents * sizeof(lineage_t *));
+    self->children_buffer = xmalloc(self->max_lineages * sizeof(lineage_t *));
+    /* Set up the ancestry algorithm */
+    self->aa_initialise = aa_linear_initialise;
+    self->aa_get_initial_ancestry = aa_linear_get_initial_ancestry;
+    self->aa_print_state = aa_linear_print_state;
+    self->aa_print_ancestry = aa_linear_print_ancestry;
+    self->aa_free = aa_linear_free;
+    self->aa_coalesce = aa_linear_coalesce;
+    self->aa_state = self->aa_initialise(self);
+    /* Set up the event classes */
+    self->event_probabilities = xmalloc(
+            self->num_event_classes * sizeof(double));
+    self->total_event_rate = 0.0;
+    for (j = 0; j < self->num_event_classes; j++) {
+        self->total_event_rate += self->event_classes[j].rate;
+    }
+    for (j = 0; j < self->num_event_classes; j++) {
+        self->event_probabilities[j] = self->event_classes[j].rate  
+                / self->total_event_rate;
+    }
+    /* All mallocing is done - we can now do things that might fail */ 
+    ret = kdtree_init(self->kdtree, self->max_lineages, self->kdtree_bucket_size, 
+            self->random_seed); 
+    ERROR_CHECK(ret, out);
+    for (j = 0; j < n; j++) {
+        x =  self->sample + 2 * j;
+        sample[j] = ercs_alloc_lineage(self);
+        if (sample[j] == NULL) {
+            ret = -OUT_OF_LINEAGES;
+            goto out;
+        }
+        sample[j]->location[0] = x[0];
+        sample[j]->location[1] = x[1];
+        sample[j]->ancestry = self->aa_get_initial_ancestry(self, (int) j + 1);
+        if (sample[j]->ancestry == NULL) {
+            ret = -OUT_OF_ANCESTRIES;
+            goto out;
+        }
+
+    }
+    ret = kdtree_build(self->kdtree, NULL, (point_t **) sample, n);
+    ERROR_CHECK(ret, out);
+    /* Set some final values to their correct initial conditions */
+    self->time = 0.0;
+    self->kdtree_insertions = 0;
+    /* Finally, make sure everything is fairly sane */    
+    ret = ercs_sanity_check(self);
+    ERROR_CHECK(ret, out);
+out:
+    free(sample);
+    return ret;
+}
+
+void
+ercs_free(ercs_t *self)
+{
+    unsigned int j;
+    for (j = 0; j < self->num_loci; j++) {
+        free(self->pi[j]);
+        free(self->tau[j]);
+    }
+    free(self->pi);
+    free(self->tau); 
+    free(self->eta);
+    self->aa_free(self);
+    free(self->lineage_heap);
+    free(self->lineage_mem);
+    kdtree_free(self->kdtree);
+    free(self->kdtree);
+    free(self->kdtree_iterator);
+    free(self->children_buffer);
+    free(self->insertion_buffer);
+    free(self->parents_buffer);
+    free(self->event_probabilities);
+    gsl_rng_free(self->rng);
+}
+
+
+/* 
+ * Simulates the coalecent for at most num_events. Returns 
+ * ERCS_SIM_NOT_DONE if the simulation must be run again to 
+ * complete the designated simulation or ERCS_SIM_DONE if 
+ * the simulation has completed.
+ */
 int 
-ercs_simulate(ercs_t *self)
+ercs_simulate(ercs_t *self, unsigned int num_events)
 {
     int ret = 0;
     unsigned int j, k;
-    unsigned int n = self->sample_size;
-    unsigned int m = self->num_loci;
     unsigned int num_children, num_inserted;
-    double *event_probabilities = xmalloc(
-            self->num_event_classes * sizeof(double));
     double L = self->torus_edge;
     double z[2] = {0.0, 0.0};
     double d2, u;
-    unsigned int kappa = n * m;
-    unsigned int kdtree_insertions = 0; 
-    double t = 0;
     gsl_rng *rng = self->rng;
+    kri_t *iter = self->kdtree_iterator; 
+    point_t **inserted = self->insertion_buffer;
+    lineage_t **parents = self->parents_buffer; 
+    lineage_t **children = self->children_buffer; 
     lineage_t *lin;
-    kri_t *iter = xmalloc(sizeof(kri_t));
-    kdtree_t *space = self->kdtree; 
-    point_t **inserted = xmalloc(self->num_parents * sizeof(point_t *));
-    lineage_t **parents = xmalloc(self->num_parents * sizeof(lineage_t *));
-    lineage_t **children = xmalloc(self->max_lineages * sizeof(lineage_t *));
     event_class_t *event;
-    unsigned int num_lineages = n;
-    double total_rate;
-    total_rate = 0.0;
-    for (j = 0; j < self->num_event_classes; j++) {
-        total_rate += self->event_classes[j].rate;
-    }
-    for (j = 0; j < self->num_event_classes; j++) {
-        event_probabilities[j] = self->event_classes[j].rate / total_rate;
-    }
-    ret = ercs_sanity_check(self);
-    ERROR_CHECK(ret, out);
-    while (kappa > m && t < self->max_time) {
-        ret = probability_list_select(event_probabilities, 
+    unsigned int events = 0;
+    while (self->kappa > self->num_loci && self->time < self->max_time && 
+            events < num_events) {
+        events++;
+        ret = probability_list_select(self->event_probabilities, 
                 self->num_event_classes, gsl_rng_uniform(self->rng));
         ERROR_CHECK(ret, out);
         event = &self->event_classes[ret];
-        t += gsl_ran_exponential(self->rng, 1.0 / total_rate);
+        self->time += gsl_ran_exponential(self->rng, 
+                1.0 / self->total_event_rate); /* TODO: get rid of this pointless op */
         random_point(z, L, rng); 
-        ret = kdtree_get_torus_region_iterator(space, z, event->radius, L, 
-                iter);
+        ret = kdtree_get_torus_region_iterator(self->kdtree, z, event->radius, 
+                L, iter);
         ERROR_CHECK(ret, out);
         num_children = 0;
         while ((lin = (lineage_t*) kri_next(iter)) != NULL) {
@@ -708,7 +721,6 @@ ercs_simulate(ercs_t *self)
                 if (gsl_rng_uniform(rng) < u) {
                     ret = kri_delete(iter);
                     ERROR_CHECK(ret, out);
-                    num_lineages--;
                     children[num_children] = lin;
                     num_children++;
                 }
@@ -722,10 +734,10 @@ ercs_simulate(ercs_t *self)
                     goto out;
                 }
             }
-            ret = self->aa_coalesce(self, children, num_children, t, parents, 
-                    &k); 
+            ret = self->aa_coalesce(self, children, num_children, self->time, 
+                    parents, &k); 
             ERROR_CHECK(ret, out);
-            kappa -= k;
+            self->kappa -= k;
             num_inserted = 0;
             for (j = 0; j < self->num_parents; j++) {
                 lin = parents[j];
@@ -739,31 +751,29 @@ ercs_simulate(ercs_t *self)
                     ercs_free_lineage(self, parents[j]);
                 }
             }
-            ret = kdtree_insert_points(space, inserted, num_inserted);
+            ret = kdtree_insert_points(self->kdtree, inserted, num_inserted);
             ERROR_CHECK(ret, out);
-            kdtree_insertions += num_inserted;
-            num_lineages += num_inserted; 
+            self->kdtree_insertions += num_inserted;
             for (j = 0; j < num_children; j++) {
                 ercs_free_lineage(self, children[j]);
             }
         }
-        if (kdtree_insertions > self->max_kdtree_insertions) {
-            kdtree_insertions = 0;
-            j = kdtree_copy_points(self->kdtree, (point_t **) children);
-            assert(j == num_lineages);
+        if (self->kdtree_insertions > self->max_kdtree_insertions) {
+            self->kdtree_insertions = 0;
+            ret = kdtree_copy_points(self->kdtree, (point_t **) children);
+            ERROR_CHECK(ret, out);
             kdtree_clear(self->kdtree);
-            ret = kdtree_build(self->kdtree, NULL, (point_t **) children, 
-                    num_lineages);
+            ret = kdtree_build(self->kdtree, NULL, (point_t **) children, ret);
             ERROR_CHECK(ret, out);
         }
-    } 
+    }
+    /* set the value of ret */
+    ret = ERCS_SIM_NOT_DONE;
+    if (self->kappa == self->num_loci || self->time >= self->max_time) {
+        ret = ERCS_SIM_DONE;
+    }
 
 out:
-    free(iter);
-    free(children);
-    free(inserted);
-    free(parents);
-    free(event_probabilities);
     return ret;
 }
 
