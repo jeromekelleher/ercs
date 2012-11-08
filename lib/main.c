@@ -233,8 +233,6 @@ read_config(ercs_t *self, const char *filename)
         fatal_error("max_lineages is a required parameter");
     }
     self->max_lineages = tmp; 
-    
-    
     if (config_lookup_float(config, "torus_diameter", &self->torus_diameter) 
             == CONFIG_FALSE) {
         fatal_error("torus_diameter is a required parameter");

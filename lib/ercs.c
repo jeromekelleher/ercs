@@ -623,6 +623,9 @@ ercs_initialise(ercs_t *self)
     ret = kdtree_init(self->kdtree, self->max_lineages, self->kdtree_bucket_size, 
             self->random_seed); 
     ERCS_ERROR_CHECK(ret, out);
+    /* Now, make sure everything is fairly sane */    
+    ret = ercs_sanity_check(self);
+    ERCS_ERROR_CHECK(ret, out);
     for (j = 0; j < n; j++) {
         x =  self->sample + 2 * j;
         sample[j] = ercs_alloc_lineage(self);
@@ -644,9 +647,6 @@ ercs_initialise(ercs_t *self)
     /* Set some final values to their correct initial conditions */
     self->time = 0.0;
     self->kdtree_insertions = 0;
-    /* Finally, make sure everything is fairly sane */    
-    ret = ercs_sanity_check(self);
-    ERCS_ERROR_CHECK(ret, out);
 out:
     free(sample);
     return ret;
