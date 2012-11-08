@@ -13,8 +13,8 @@ _ercs_module = Extension('_ercs',
 
 setup(
     name = "ercs",
-    version = "1.0.5-dev",
-    description = "Extinction/recolonisation coalescent simulator",
+    version = "1.0.8-dev",
+    description = "Coalescent simulations in continuous space",
     author = "Jerome Kelleher",
     author_email = "jerome.kelleher@ed.ac.uk",
     url = "http://testpypi.python.org/pypi/ercs", 

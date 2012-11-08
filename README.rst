@@ -1,5 +1,5 @@
 ==============================================
-Coalescent simulations in continuous space
+Extinction/recolonisation coalescent simulator
 ==============================================
 
 Simulates the coalescent for populations evolving in a spatial 
@@ -23,8 +23,8 @@ Here's a quick example for the impatient::
 
         import ercs
         sim = ercs.Simulator(10)
-        sim.sample =  [(1, 1), (2, 2), (3, 3)]
-        sim.event_classes = [ercs.DiscEventClass(rate=1.0, u=0.5, r=1)]
+        sim.sample = {1:(3, 2), 2:(6, 4), 3:(7, 0)}
+        sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
         pi, tau = sim.run(1)
 
 Full documentation for ``ercs`` is available at `<http://jeromekelleher.github.com/ercs>`_.
