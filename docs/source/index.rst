@@ -17,15 +17,18 @@ In this model, individuals occupy a fixed location and all movement and
 reproduction occur as a result of extinction/recolonisation *events*. Events 
 fall randomly in space, independent of the location of extant individuals.
 In each event some fraction of the 
-local population dies and are replaced by the descendants of a small
+local population dies and replaced by the descendants of a small
 number of parents, drawn randomly from the population immediately 
 before the event.  See [E08]_, [BEV10]_, [BKE10]_  and [BEV12]_ for 
-extensive discussions of the model, its background, and mathematical 
+discussions of the model, its background, and detailed mathematical 
 results.
 
-Here we document the :mod:`ercs` Python module, 
+This is the documentation for the :mod:`ercs` Python module, 
 which provides a straightforward interface to coalescent simulations 
-of this model. 
+for the extinction/recolonisation model. The basic approach to simulating 
+the history of a sample and interpreting the results is explained through 
+a series of simple examples in the `Examples`_  section 
+along with thorough API documentation for the :mod:`ercs` module.
 
 -----------
 Examples
