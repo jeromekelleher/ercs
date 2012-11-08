@@ -544,7 +544,7 @@ ercs_sanity_check(ercs_t *self)
     for (j = 0; j < self->num_event_classes; j++) {
         e = &self->event_classes[j];
         ret = e->sanity_check(e, self);
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
     }
     if (self->max_lineages == 0) {
         ret = -ILLEGAL_ARGUMENT;
@@ -622,7 +622,7 @@ ercs_initialise(ercs_t *self)
     /* All mallocing is done - we can now do things that might fail */ 
     ret = kdtree_init(self->kdtree, self->max_lineages, self->kdtree_bucket_size, 
             self->random_seed); 
-    ERROR_CHECK(ret, out);
+    ERCS_ERROR_CHECK(ret, out);
     for (j = 0; j < n; j++) {
         x =  self->sample + 2 * j;
         sample[j] = ercs_alloc_lineage(self);
@@ -640,13 +640,13 @@ ercs_initialise(ercs_t *self)
 
     }
     ret = kdtree_build(self->kdtree, NULL, (point_t **) sample, n);
-    ERROR_CHECK(ret, out);
+    ERCS_ERROR_CHECK(ret, out);
     /* Set some final values to their correct initial conditions */
     self->time = 0.0;
     self->kdtree_insertions = 0;
     /* Finally, make sure everything is fairly sane */    
     ret = ercs_sanity_check(self);
-    ERROR_CHECK(ret, out);
+    ERCS_ERROR_CHECK(ret, out);
 out:
     free(sample);
     return ret;
@@ -705,14 +705,14 @@ ercs_simulate(ercs_t *self, unsigned int num_events)
         events++;
         ret = probability_list_select(self->event_probabilities, 
                 self->num_event_classes, gsl_rng_uniform(self->rng));
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
         event = &self->event_classes[ret];
         self->time += gsl_ran_exponential(self->rng, 
                 1.0 / self->total_event_rate); /* TODO: get rid of this pointless op */
         random_point(z, L, rng); 
         ret = kdtree_get_torus_region_iterator(self->kdtree, z, event->radius, 
                 L, iter);
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
         num_children = 0;
         while ((lin = (lineage_t*) kri_next(iter)) != NULL) {
             d2 = torus_squared_distance(z, lin->location, L);
@@ -720,7 +720,7 @@ ercs_simulate(ercs_t *self, unsigned int num_events)
                 u = event->death_probability(event, d2);
                 if (gsl_rng_uniform(rng) < u) {
                     ret = kri_delete(iter);
-                    ERROR_CHECK(ret, out);
+                    ERCS_ERROR_CHECK(ret, out);
                     children[num_children] = lin;
                     num_children++;
                 }
@@ -736,7 +736,7 @@ ercs_simulate(ercs_t *self, unsigned int num_events)
             }
             ret = self->aa_coalesce(self, children, num_children, self->time, 
                     parents, &k); 
-            ERROR_CHECK(ret, out);
+            ERCS_ERROR_CHECK(ret, out);
             self->kappa -= k;
             num_inserted = 0;
             for (j = 0; j < self->num_parents; j++) {
@@ -752,7 +752,7 @@ ercs_simulate(ercs_t *self, unsigned int num_events)
                 }
             }
             ret = kdtree_insert_points(self->kdtree, inserted, num_inserted);
-            ERROR_CHECK(ret, out);
+            ERCS_ERROR_CHECK(ret, out);
             self->kdtree_insertions += num_inserted;
             for (j = 0; j < num_children; j++) {
                 ercs_free_lineage(self, children[j]);
@@ -761,10 +761,10 @@ ercs_simulate(ercs_t *self, unsigned int num_events)
         if (self->kdtree_insertions > self->max_kdtree_insertions) {
             self->kdtree_insertions = 0;
             ret = kdtree_copy_points(self->kdtree, (point_t **) children);
-            ERROR_CHECK(ret, out);
+            ERCS_ERROR_CHECK(ret, out);
             kdtree_clear(self->kdtree);
             ret = kdtree_build(self->kdtree, NULL, (point_t **) children, ret);
-            ERROR_CHECK(ret, out);
+            ERCS_ERROR_CHECK(ret, out);
         }
     }
     /* set the value of ret */

@@ -22,14 +22,13 @@
 
 #include <stdlib.h>
 
-/* TODO: ERROR_CHECK should  be changed to ERCS_ERROR_CHECK */
 
 #ifdef DEBUG_ERRORS
-#define ERROR_CHECK(r, label) \
+#define ERCS_ERROR_CHECK(r, label) \
     printf("ERROR_CHECK: %d: %d: %s\n", r, __LINE__, __FILE__); \
     if (r < 0) { goto label;}
 #else
-#define ERROR_CHECK(r, label) \
+#define ERCS_ERROR_CHECK(r, label) \
     if (r < 0) { goto label;}
 #endif
 

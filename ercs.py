@@ -61,7 +61,7 @@ class Simulator(object):
         self.recombination_probabilities = None 
         self.kdtree_bucket_size = None
         self.max_kdtree_insertions = None
-        self.max_lineage_memory = None 
+        self.max_lineages = None 
         self.max_time = None
 
     def __set_defaults(self):
@@ -78,8 +78,8 @@ class Simulator(object):
         if self.kdtree_bucket_size == None:
             self.kdtree_bucket_size = 1
         m = len(self.recombination_probabilities) + 1
-        if self.max_lineage_memory == None:
-            self.max_lineage_memory = 32 
+        if self.max_lineages == None:
+            self.max_lineages = 1000 
         if self.num_parents == None:
             self.num_parents = 1 if m == 1 else 2 
 
@@ -107,12 +107,11 @@ class Simulator(object):
         
         n = len(self.sample) if isinstance(self.sample, dict) else len(self.sample) - 1
         sample = [self.sample[j] for j in range(1, n + 1)]
-        print(self.sample, "->", sample)
 
         pi, tau = _ercs.simulate(random_seed, self.torus_diameter, 
                 self.num_parents, sample, ll_event_classes, 
                 self.recombination_probabilities, self.kdtree_bucket_size, 
-                self.max_kdtree_insertions, self.max_lineage_memory, 
+                self.max_kdtree_insertions, self.max_lineages, 
                 self.max_time, 0)
         # trim the output and set pi[0] = -1
         for j in range(len(pi)):
@@ -194,7 +193,6 @@ class MRCACalculator(object):
     algorithm from TAOCP volume 4A, pg.164-167 [K11]_. Preprocesses the 
     input tree into a sideways heap in O(n) time and processes queries for the 
     nearest common ancestor between an arbitary pair of nodes in O(1) time.
-    
     
     :param oriented_forest: the input oriented forest
     :type oriented_forest: list of integers

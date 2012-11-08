@@ -264,10 +264,10 @@ main(int argc, char** argv)
     }
     read_config(self, argv[1]); 
     ret = ercs_initialise(self);
-    ERROR_CHECK(ret, out); 
+    ERCS_ERROR_CHECK(ret, out); 
     while (not_done) {
         ret = ercs_simulate(self, 1<<31);
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
         not_done = ret == ERCS_SIM_NOT_DONE;
     }
     ercs_print_state(self);

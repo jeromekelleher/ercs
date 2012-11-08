@@ -104,20 +104,20 @@ kdtree_test_region_iterator(kdtree_t *tree, unsigned int num_points, double R)
     double p[2] = {0.0, 0.0};
     for (i = num_points; i > 0; i--) {
         ret = kdtree_copy_points(tree, f1);
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
         ret = kdtree_get_torus_region_iterator(tree, p, R, R, iter);
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
         j = 0;
         while ((ind = kri_next(iter)) != NULL) {
             f2[j] = ind;
             j++;
         }
         ret = compare_point_lists(tree, f1, f2, i, j, -124);
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
         /* delete a random element of the list */
         u = (unsigned int) random_int(0, (int) i - 1); 
         ret = kdtree_get_torus_region_iterator(tree, p, R, R, iter);
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
         j = 0;
         while ((ind = kri_next(iter)) != NULL && j < u) {
             //printf("Skipping over: %p\n", ind);
@@ -125,7 +125,7 @@ kdtree_test_region_iterator(kdtree_t *tree, unsigned int num_points, double R)
         }
         //kdtree_print(iter->__kdtree, iter->__kdtree->root, 0, 0);
         ret = kri_delete(iter);
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
         while ((ind = kri_next(iter)) != NULL) {
             //printf("Continuing : %p\n", ind);
             j++;
@@ -170,7 +170,7 @@ kdtree_test_torus_search(kdtree_t *tree, double *p, double r, unsigned int R,
         } 
     }
     ret = kdtree_get_torus_region_iterator(tree, p, r, (double) R, iter);
-    ERROR_CHECK(ret, out);
+    ERCS_ERROR_CHECK(ret, out);
     i = 0;
     while ((ind = kri_next(iter)) != NULL) {
         if (torus_squared_distance(p, ind->location, (double) R) <= r2) {
@@ -202,15 +202,15 @@ kdtree_test_search(kdtree_t *tree, unsigned int R, unsigned int num_points,
         random_point_rand(p, (double) R);
         ret = kdtree_test_torus_search(tree, p, r, R, num_points, 
                 points); 
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
     } 
     random_point_rand(p, (double) R);
     ret = kdtree_test_torus_search(tree, p, (R / 2.0) + 1, R, num_points,
             points); 
-    ERROR_CHECK(ret, out);
+    ERCS_ERROR_CHECK(ret, out);
     ret = kdtree_test_torus_search(tree, p, (double) R, R, num_points,
             points); 
-    ERROR_CHECK(ret, out);
+    ERCS_ERROR_CHECK(ret, out);
 out:            
     return ret;
 }
@@ -224,18 +224,18 @@ test_kdtree_size(unsigned int R, unsigned int num_points,
     kdtree_t *tree = xmalloc(sizeof(kdtree_t));
     point_t **points = xmalloc(num_points * sizeof(point_t *));
     ret = kdtree_init(tree, num_points, bucket_size, 0); 
-    ERROR_CHECK(ret, out);
+    ERCS_ERROR_CHECK(ret, out);
     for (i = 0; i < num_points; i++) {
         points[i] = xmalloc(sizeof(point_t)); 
         random_point_rand(points[i]->location, (double) R);
     }   
     ret = kdtree_build(tree, tree->root, points, num_points); 
-    ERROR_CHECK(ret, out);
+    ERCS_ERROR_CHECK(ret, out);
     /* OK, now we can do stuff */
     ret = kdtree_test_search(tree, R, num_points, points);
-    ERROR_CHECK(ret, out);
+    ERCS_ERROR_CHECK(ret, out);
     ret = kdtree_test_region_iterator(tree, num_points, (double) R);
-    ERROR_CHECK(ret, out);
+    ERCS_ERROR_CHECK(ret, out);
 out:
     kdtree_free(tree);
     for (i = 0; i < num_points; i++) {
@@ -256,13 +256,13 @@ test_kdtree(void)
         for (num_points = 0; num_points < 11; num_points++) {
             printf("testing %d\n", num_points);
             ret = test_kdtree_size(1u << R, 1u << num_points, 64);
-            ERROR_CHECK(ret, out);
+            ERCS_ERROR_CHECK(ret, out);
             ret = test_kdtree_size(1u << R, 1u << num_points, 8);
-            ERROR_CHECK(ret, out);
+            ERCS_ERROR_CHECK(ret, out);
             ret = test_kdtree_size(1u << R, 1u << num_points, 4);
-            ERROR_CHECK(ret, out);
+            ERCS_ERROR_CHECK(ret, out);
             ret = test_kdtree_size(1u << R, 1u << num_points, 1);
-            ERROR_CHECK(ret, out);
+            ERCS_ERROR_CHECK(ret, out);
         }
     }   
 

@@ -45,7 +45,7 @@ def oriented_forest_example(seed):
     return pi[0]
 
 def mrca_example(seed):
-    L = 40
+    L = 400
     sim = ercs.Simulator(L)
     sim.sample = [None] + [(0, j) for j in range(1, 10)]
     sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
@@ -99,10 +99,10 @@ def main():
     #nca_example()
     #print(first_example(3))
     #print(oriented_forest_example(5))
-    #mrca_example(3002)
+    mrca_example(3002)
     #print(two_locus_example(30, 1e-7))
     #
-    out_of_memory_example()
+    #out_of_memory_example()
 
 if __name__ == "__main__":
     main()

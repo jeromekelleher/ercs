@@ -627,7 +627,7 @@ kdtree_get_buckets_in_region(kdtree_t *self, double *min_bounds, double *max_bou
         s--;
         if (IS_BUCKET(node)) {
             ret = list_set_insert(self->node_set, node);
-            ERROR_CHECK(ret, out);
+            ERCS_ERROR_CHECK(ret, out);
         } else {
             itnode = node;
             d = itnode->cut_dimension;
@@ -683,39 +683,39 @@ kdtree_get_buckets_in_torus_radius(kdtree_t *self, const double *p, const double
         /* just look at the whole thing - it's not worth finding the holes. */
         set_bounds(min_bounds, max_bounds, 0.0, 0.0, R, R);
         ret = kdtree_get_buckets_in_region(self, min_bounds, max_bounds);
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
     } else if (x_middle_full && y_middle_full) {
         set_bounds(min_bounds, max_bounds, x - r, y - r, x + r, y + r);
         ret = kdtree_get_buckets_in_region(self, min_bounds, max_bounds);
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
     } else if (x_middle_full && !y_middle_full) {
         set_bounds(min_bounds, max_bounds, x - r, 0.0, x + r, TORUS_ADD(y, r, R));
         ret = kdtree_get_buckets_in_region(self, min_bounds, max_bounds);
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
         set_bounds(min_bounds, max_bounds, x - r, TORUS_SUBTRACT(y, r, R), x + r, R); 
         ret = kdtree_get_buckets_in_region(self, min_bounds, max_bounds);
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
     } else if (y_middle_full && !x_middle_full) {
         set_bounds(min_bounds, max_bounds, 0.0, y - r, TORUS_ADD(x, r, R), y + r);
         ret = kdtree_get_buckets_in_region(self, min_bounds, max_bounds);
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
         set_bounds(min_bounds, max_bounds, TORUS_SUBTRACT(x, r, R), y - r, R, y + r); 
         ret = kdtree_get_buckets_in_region(self, min_bounds, max_bounds);
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
     } else {
         /* Define our four regions to search, defined clockwise from origin */
         set_bounds(min_bounds, max_bounds, 0.0, 0.0, TORUS_ADD(x, r, R), TORUS_ADD(y, r, R)); 
         ret = kdtree_get_buckets_in_region(self, min_bounds, max_bounds);
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
         set_bounds(min_bounds, max_bounds, 0.0, TORUS_SUBTRACT(y, r, R), TORUS_ADD(x, r, R), R); 
         ret = kdtree_get_buckets_in_region(self, min_bounds, max_bounds);
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
         set_bounds(min_bounds, max_bounds, TORUS_SUBTRACT(x, r, R), TORUS_SUBTRACT(y, r, R), R, R); 
         ret = kdtree_get_buckets_in_region(self, min_bounds, max_bounds);
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
         set_bounds(min_bounds, max_bounds, TORUS_SUBTRACT(x, r, R), 0.0, R, TORUS_ADD(y, r, R)); 
         ret = kdtree_get_buckets_in_region(self, min_bounds, max_bounds);
-        ERROR_CHECK(ret, out);
+        ERCS_ERROR_CHECK(ret, out);
     }
 out:    
     return ret;
@@ -809,7 +809,7 @@ kdtree_insert_points(kdtree_t *self, point_t **points,
             etnode = (kd_external_node *) node; 
             ret = kdtree_external_node_insert_points(self, etnode, points, 
                     left, right);
-            ERROR_CHECK(ret, out);
+            ERCS_ERROR_CHECK(ret, out);
        } else {
             itnode = (kd_internal_node *) node; 
             d = itnode->cut_dimension;
@@ -857,7 +857,7 @@ kdtree_copy_points(kdtree_t *self, point_t **points)
     kd_external_node *tnode;
     list_node *next_lnode;
     ret = kdtree_get_buckets_in_region(self, min_bounds, max_bounds); 
-    ERROR_CHECK(ret, out);
+    ERCS_ERROR_CHECK(ret, out);
     a = self->node_set->list;
     for (i = 0; i < self->node_set->num_keys; i++) {
         tnode = (kd_external_node *) a[i];
@@ -906,7 +906,7 @@ kdtree_get_torus_region_iterator(kdtree_t *self, const double *z, const double r
     p[1] = z[1];
     list_set_clear(self->node_set);
     ret = kdtree_get_buckets_in_torus_radius(self, p, r, R);
-    ERROR_CHECK(ret, out);
+    ERCS_ERROR_CHECK(ret, out);
     iter->delete_possible = 0;
     iter->kdtree = self;
     iter->node_set = self->node_set;

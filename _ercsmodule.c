@@ -254,9 +254,8 @@ out:
 "       the kdtree is rebuilt. If this parameter is 0 then the kdtree will "\
 "       not be rebuilt\n"\
 "   :type max_kdtree_insertions: unsigned integer\n"\
-"   :param max_lineage_memory: The maximum amount of memory used to store"\
-"       lineages in MiB. If the simulation exceeds this limit"\
-"       a LibraryError is raised.\n"\
+"   :param max_lineages: The maximum number of extant lineages. "\
+"       If the simulation exceeds this limit a LibraryError is raised.\n"\
 "   :type max_lineages: unsigned integer\n"\
 "   :param max_time: the maximum time we simulate back into the past. If this "\
 "       parameter is 0.0 the simulation will continue until all loci have "\
@@ -273,7 +272,7 @@ out:
 static PyObject *
 pyercs_simulate(PyObject *self, PyObject *args)
 {
-    int err, ercs_err;
+    int err, ercs_ret, not_done;
     PyObject *ret = NULL;
     PyObject *pi = NULL;
     PyObject *tau = NULL;
@@ -292,7 +291,7 @@ pyercs_simulate(PyObject *self, PyObject *args)
                 &PyList_Type, &py_recombination,
                 &sim->kdtree_bucket_size,
                 &sim->max_kdtree_insertions,
-                &sim->max_lineage_memory,
+                &sim->max_lineages,
                 &sim->max_time,
                 &ancestry_algorithm /* unused */)) {
         goto out; 
@@ -313,18 +312,17 @@ pyercs_simulate(PyObject *self, PyObject *args)
     if (sim->max_kdtree_insertions == 0) {
         sim->max_kdtree_insertions = UINT_MAX;
     }
-    ercs_err = ercs_initialise(sim);
-    /* TODO: ERROR_CHECK should  be changed to ERCS_ERROR_CHECK */
-    ERROR_CHECK(ercs_err, cleanup);
-    //ercs_print_state(sim);
-    /* TODO change the API here slightly to run events in chunks so 
-     * that we can check if a KeyBoardInterrupt happened while we 
-     * were working. That way we can abort reasonably gracefully 
-     */
-    ercs_err = ercs_simulate(sim);
-    ERROR_CHECK(ercs_err, cleanup);
-    //ercs_print_state(sim);
-    
+    ercs_ret = ercs_initialise(sim);
+    ERCS_ERROR_CHECK(ercs_ret, cleanup);
+    not_done = 1; 
+    while (not_done) {
+        ercs_ret = ercs_simulate(sim, 1<<20);
+        ERCS_ERROR_CHECK(ercs_ret, out);
+        not_done = ercs_ret == ERCS_SIM_NOT_DONE;
+        if (PyErr_CheckSignals() < 0) {
+            goto out;
+        }
+    }
     /* output */
     pi = PyList_New(sim->num_loci);
     if (pi == NULL) {
@@ -373,8 +371,8 @@ cleanup:
         Py_DECREF(tau);
     }
     ercs_free(sim);
-    if (ercs_err < 0) {
-        PyErr_SetString(ErcsLibraryError, ercs_error_str(ercs_err)); 
+    if (ercs_ret < 0) {
+        PyErr_SetString(ErcsLibraryError, ercs_error_str(ercs_ret)); 
     }
 out:
     if (sim->sample != NULL) {
