@@ -184,17 +184,21 @@ int
 main(void)
 {
     int result;
+    printf("\trunning torus tests");
     result = test_torus_distance_known();
     if (result < 0) {
         printf("Error in known torus_distance tests: %d\n", result);
         exit(result);
     }
+    printf(".");
+    fflush(stdout);
     result = test_torus_distance_systematic();
     if (result < 0) {
         printf("Error in known torus_distance tests: %d\n", result);
         exit(result);
     }
-    
+    printf(".");
+    printf("\n"); 
     return EXIT_SUCCESS;
 
 }

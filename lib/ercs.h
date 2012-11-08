@@ -86,7 +86,7 @@ typedef struct ercs_t_t {
     unsigned int max_kdtree_insertions;
     unsigned int max_lineages;
     long random_seed; 
-    double torus_edge;
+    double torus_diameter;
     double max_time;
     double *sample;
     event_class_t *event_classes;

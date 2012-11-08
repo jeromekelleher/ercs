@@ -157,7 +157,7 @@ gaussian_sanity_check(event_class_t *event, ercs_t *sim)
         ret = ILLEGAL_ARGUMENT;
         goto out;
     } 
-    if (theta < 0.0 || theta >= sim->torus_edge / 2.0) {
+    if (theta < 0.0 || theta >= sim->torus_diameter / 2.0) {
         ret = ILLEGAL_ARGUMENT;
         goto out;
     } 
@@ -231,7 +231,7 @@ disc_sanity_check(event_class_t *event, ercs_t *sim)
         ret = ILLEGAL_ARGUMENT;
         goto out;
     } 
-    if (r < 0.0 || r >= sim->torus_edge / 2.0) {
+    if (r < 0.0 || r >= sim->torus_diameter / 2.0) {
         ret = ILLEGAL_ARGUMENT;
         goto out;
     } 
@@ -429,7 +429,7 @@ ercs_print_state(ercs_t *self)
     int *pi;
     double *tau;
     double z[] = {0.0, 0.0};
-    double L = self->torus_edge;
+    double L = self->torus_diameter;
     lineage_t *lin;
     kri_t *iter = xmalloc(sizeof(kri_t));
     printf("num_parents = %u\n", self->num_parents);
@@ -439,7 +439,7 @@ ercs_print_state(ercs_t *self)
     printf("max_kdtree_insertions = %u\n", self->max_kdtree_insertions);
     printf("num_loci = %u\n", self->num_loci);
     printf("random_seed = %ld\n", self->random_seed);
-    printf("torus_edge = %f\n", self->torus_edge);
+    printf("torus_diameter = %f\n", self->torus_diameter);
     printf("max_time = %G\n", self->max_time);
     printf("recombination_probabilities = [");
     for (j = 0; j < self->num_loci - 1; j++) {
@@ -509,7 +509,7 @@ ercs_sanity_check(ercs_t *self)
     unsigned int j, k;
     double v;
     event_class_t *e;
-    if (self->torus_edge <= 0.0) {
+    if (self->torus_diameter <= 0.0) {
         ret = -ILLEGAL_ARGUMENT;
         goto out;
     }
@@ -520,7 +520,7 @@ ercs_sanity_check(ercs_t *self)
     for (j = 0; j < self->sample_size; j++) {
         for (k = 0; k < 2; k++) {
             v = self->sample[2 * j + k];
-            if (v < 0.0 || v > self->torus_edge) {
+            if (v < 0.0 || v > self->torus_diameter) {
                 ret = -ILLEGAL_ARGUMENT;
                 goto out;
             }
@@ -689,7 +689,7 @@ ercs_simulate(ercs_t *self, unsigned int num_events)
     int ret = 0;
     unsigned int j, k;
     unsigned int num_children, num_inserted;
-    double L = self->torus_edge;
+    double L = self->torus_diameter;
     double z[2] = {0.0, 0.0};
     double d2, u;
     gsl_rng *rng = self->rng;

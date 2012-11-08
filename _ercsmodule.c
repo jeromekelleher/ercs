@@ -94,7 +94,7 @@ pyercs_parse_sample(PyObject *py_sample, ercs_t *sim)
                 }
                 v = PyFloat_AsDouble(value);
                 sim->sample[j * 2 + k] = v;
-                if (v < 0.0 || v >= sim->torus_edge) {
+                if (v < 0.0 || v >= sim->torus_diameter) {
                     PyErr_SetString(ErcsInputError, 
                             "sample location: must have 0 <= v < L"); 
                     goto out;
@@ -284,7 +284,7 @@ pyercs_simulate(PyObject *self, PyObject *args)
     sim->recombination_probabilities = NULL;
     if (!PyArg_ParseTuple(args, "ldIO!O!O!IIIdI", 
                 &sim->random_seed,
-                &sim->torus_edge,
+                &sim->torus_diameter,
                 &sim->num_parents,
                 &PyList_Type, &py_sample,
                 &PyList_Type, &py_events,

@@ -235,9 +235,9 @@ read_config(ercs_t *self, const char *filename)
     self->max_lineages = tmp; 
     
     
-    if (config_lookup_float(config, "torus_edge", &self->torus_edge) 
+    if (config_lookup_float(config, "torus_diameter", &self->torus_diameter) 
             == CONFIG_FALSE) {
-        fatal_error("torus_edge is a required parameter");
+        fatal_error("torus_diameter is a required parameter");
     }
     if (config_lookup_float(config, "max_time", 
                 &self->max_time) == CONFIG_FALSE) {

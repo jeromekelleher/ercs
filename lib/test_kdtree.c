@@ -120,17 +120,13 @@ kdtree_test_region_iterator(kdtree_t *tree, unsigned int num_points, double R)
         ERCS_ERROR_CHECK(ret, out);
         j = 0;
         while ((ind = kri_next(iter)) != NULL && j < u) {
-            //printf("Skipping over: %p\n", ind);
             j++;
         }
-        //kdtree_print(iter->__kdtree, iter->__kdtree->root, 0, 0);
         ret = kri_delete(iter);
         ERCS_ERROR_CHECK(ret, out);
         while ((ind = kri_next(iter)) != NULL) {
-            //printf("Continuing : %p\n", ind);
             j++;
         }
-        //printf("%d %d\n", j, i);
         if (j != i - 1) {
             printf("Error in iterator: not completed correctly: %d %d\n", j, i);
             ret = -125;
@@ -250,21 +246,27 @@ static int
 test_kdtree(void)
 {
     int ret = 0;
-    int num_points;
-    int R;
-    for (R = 1; R < 30; R += 10) {
-        for (num_points = 0; num_points < 11; num_points++) {
-            printf("testing %d\n", num_points);
-            ret = test_kdtree_size(1u << R, 1u << num_points, 64);
+    unsigned int j, k, L, n;
+    unsigned int torus_sizes[] = {1, 2, 5, 123, 1111};
+    unsigned int num_points[] = {1, 2, 11, 50, 212, 333, 515};
+    printf("\trunning kdtree tests");
+    for (j = 0; j < sizeof(torus_sizes) / sizeof(unsigned int); j++) {
+        L = torus_sizes[j];
+        for (k = 0; k < sizeof(num_points) / sizeof(unsigned int); k++) {
+            printf(".");
+            fflush(stdout);
+            n = num_points[k]; 
+            ret = test_kdtree_size(L, n, 64);
             ERCS_ERROR_CHECK(ret, out);
-            ret = test_kdtree_size(1u << R, 1u << num_points, 8);
+            ret = test_kdtree_size(L, n, 8);
             ERCS_ERROR_CHECK(ret, out);
-            ret = test_kdtree_size(1u << R, 1u << num_points, 4);
+            ret = test_kdtree_size(L, n, 4);
             ERCS_ERROR_CHECK(ret, out);
-            ret = test_kdtree_size(1u << R, 1u << num_points, 1);
+            ret = test_kdtree_size(L, n, 1);
             ERCS_ERROR_CHECK(ret, out);
         }
-    }   
+    }  
+    printf("\n");
 
 out:
     return ret;
