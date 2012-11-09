@@ -16,8 +16,8 @@ is a recently-introduced model of populations evolving in continuous space.
 In this model, individuals occupy a fixed location and all movement and 
 reproduction occur as a result of extinction/recolonisation *events*. Events 
 fall randomly in space, independent of the location of extant individuals.
-In each event some fraction of the 
-local population dies and replaced by the descendants of a small
+In each event, some of the nearby individuals  
+die and are replaced by the descendants of a small
 number of parents, drawn randomly from the population immediately 
 before the event.  See [E08]_, [BEV10]_, [BKE10]_  and [BEV12]_ for 
 discussions of the model, its background, and detailed mathematical 
@@ -25,9 +25,9 @@ results.
 
 This is the documentation for the :mod:`ercs` Python module, 
 which provides a straightforward interface to coalescent simulations 
-for the extinction/recolonisation model. The basic approach to simulating 
+for this model. The basic approach to simulating 
 the history of a sample and interpreting the results is explained through 
-a series of simple examples in the `Examples`_  section 
+a series of straightforward examples in the `Examples`_  section 
 along with thorough API documentation for the :mod:`ercs` module.
 
 -----------
@@ -39,7 +39,7 @@ Simulating the coalescent for the extinction/recolonisation model using
 
 1. Allocate an instance of :class:`ercs.Simulator`;
 
-2. Set the properties of the desired simulation by setting values to the 
+2. Set the properties of the desired simulation by assigning values to the 
    attributes of this object;
 
 3. Run the simulation for a given random seed using the :meth:`ercs.Simulator.run`
@@ -67,7 +67,7 @@ simple example::
     
     def first_example(seed):
         sim = ercs.Simulator(20)
-        sim.sample =  {1:(0, 0), 2:(0, 5), 3:(0, 10)}
+        sim.sample =  [None, (0, 0), (0, 5), (0, 10)]
         sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
         return sim.run(seed) 
 
@@ -78,37 +78,64 @@ rather arbitrary, as the real size of the habitat that
 we imagine our population evolving on is determined by the scale 
 of events relative to the size of the torus. Thus, the size of the 
 torus can be any value you wish, once the spatial extent of events 
-is scaled appropriately. For the following examples we'll tend to 
-use rather large events, as it's useful to have examples that 
-run quickly. These are very unrealistic evolutionary scenarios. 
+is scaled appropriately.
 
-The initial locations of the lineages whose ancestry we wish to simulate
-are specified using the :attr:`ercs.Simulator.sample` attribute. These
-are 2-tuples describing locations in two dimensions on the torus.
-Here, we simulate the history of three locations, 
-``(0, 0)``, ``(0, 5)`` and ``(0, 10)``.
-
-Before we can simulate the history of this sample, we must describe the 
-model under which we imagine the population has evolved. This is done by 
-allocating some objects that describe the type of events that we 
-are interested in, and assigning these to the 
-`ercs.Simulator.event_classes` attribute. In the example above, 
+The details of the model under which we imagine the population has evolved
+are specified via one or more *event classes*. 
+We allocate a list of objects 
+that describe the type of events that we 
+are interested in, and assign these to the 
+:attr:`ercs.Simulator.event_classes` attribute. In the example above, 
 we state that all events in the simulation are from the Disc model, 
 and they have radius ``r =  1`` and impact ``u = 0.5``.
 There can be any number of event classes happening at different 
 rates: see `Event Classes`_ for details.
 
-After we have completed setting up the parameters of the simulation
-we can then run the simulation by calling the 
-:meth:`ercs.Simulator.run` method for a given random seed. 
-This returns the simulated history of the sample.
+
+.. note:: In these examples we'll tend to 
+    use rather large events, as it's useful to have examples that 
+    run quickly. These represent highly unrealistic evolutionary scenarios. 
+
+**************************
+Samples
+**************************
+
+The initial locations of the lineages whose ancestry we wish to simulate
+are specified using the :attr:`ercs.Simulator.sample` attribute, which is a list of
+2-tuples describing locations in two dimensions on the torus.
+There is a slightly awkward issue to deal with about how we use this list,
+however.
+
+In the simulation algorithm, locations in the sample are mapped to the 
+positive integers, ``1`` to ``n``. These integers represent the nodes 
+that the lineage occupies in the tree describing the history of the 
+sample, and this relationship is very naturally described using a list.
+The awkwardness arises in the discrepancy between this convention of 
+counting from ``1`` and Python's convention of making the index of 
+the first element of a list ``0``.
+
+To avoid inconsistencies between the input and output of the simulations,
+we therefore adopt the convention that the zero'th element of the sample 
+must be ``None``. So, in the sample above we simulate the history of 
+three locations ``(0, 0)``, ``(0, 5)`` and ``(0, 10)``, which are
+mapped to nodes ``1``, ``2`` and ``3`` respectively. Writing the
+mapping out explicitly we get:
+
+>>> s = [None, (0, 0), (0, 5), (0, 10)]
+>>> {j: s[j] for j in range(1, 4)}
+{1: (0, 0), 2: (0, 5), 3: (0, 10)}
+
+
+
 
 **************************
 Oriented trees and forests
 **************************
 
-The most part of :mod:`ercs` to understand is the way in which we encode 
-genealogies. Running the example above, we get
+After we have completed setting up the parameters of the simulation
+we can then run the simulation by calling the 
+:meth:`ercs.Simulator.run` method for a given random seed. 
+Running the example above, we get
 
 >>> first_example(3)
 ([[-1, 4, 4, 5, 5, 0]], [[-1, 0.0, 0.0, 0.0, 30441.574004183603, 46750.11224375103]])
@@ -117,17 +144,16 @@ genealogies. Running the example above, we get
 produced a neat example to discuss).
 This output completely describes the ancestry of the sample, although it's not immediately
 obvious how. In ``ercs`` we use *oriented trees* to represent the genealogy of a sample.
-In an oriented tree, we are only interested in the parent-child relationships between nodes,
+In an oriented tree, we are only interested in parent-child relationships
 and don't care about the order of children at a node. Therefore, in an oriented tree
 ``pi``, the parent of node ``j`` is ``pi[j]``. If we map each node in the tree to a unique 
 positive integer and adopt the convention that any node whose parent is the 
 special "null node" ``0`` is a root, 
 we can then represent an oriented tree very simply as a list of integers.
 
-In our example above, we have a list of three locations as our sample, and so we map 
-these to the integers ``1``, ``2`` and ``3`` (i.e., lineage ``1`` is sampled at 
-location ``(0, 0)`` and so on). The :meth:`ercs.Simulator.run` 
-method returns a tuple, ``(pi, tau)``;
+As discussed above, we have three locations as our sample
+mapped to the integers ``1``, ``2`` and ``3``.
+The :meth:`ercs.Simulator.run` method returns a tuple, ``(pi, tau)``;
 ``pi`` is a list of oriented forests (one for each locus) and ``tau`` is a list of 
 node times (one for each locus). In the example, we are dealing with a single locus 
 only, so ``pi`` is a list consisting of one list, ``[-1, 4, 4, 5, 5, 0]``, that 
@@ -138,11 +164,11 @@ encodes the following tree:
    :alt: An oriented tree
    :width: 15cm
 
-It may be easier to see this if we explicitly map the nodes to their parents:
+Mapping nodes to their parents explicitly, we get:
 
 >>> pi, tau = first_example(3)
->>> [(node, pi[0][node]) for node in range(1, len(pi[0]))]
-[(1, 4), (2, 4), (3, 5), (4, 5), (5, 0)]
+>>> {node: pi[0][node] for node in range(1, len(pi[0]))}
+{1: 4, 2: 4, 3: 5, 4: 5, 5: 0}
 
 .. note:: The zero'th element of an oriented forest and its associated node 
    time list is not used and is set to -1 by convention, 
@@ -158,12 +184,12 @@ Oriented *forests* occur when there is more than one root in a list ``pi``, and
 so we have a set of disconnected trees. This can happen when we specify
 the ``max_time`` attribute, potentially stopping the simulation before
 the sample has completely coalesced. Consider the following example::
-    
+   
+
     def oriented_forest_example(seed):
-        L = 20
-        sim = ercs.Simulator(L)
+        sim = ercs.Simulator(20)
+        sim.sample = [None] + [(j, j) for j in range(10)]
         sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
-        sim.sample = [(j, j) for j in range(10)]
         sim.max_time = 1e5
         pi, tau = sim.run(seed)
         return pi[0]
@@ -171,21 +197,19 @@ the sample has completely coalesced. Consider the following example::
 Here we allocate a Simulator on a torus of diameter 20 as before and
 use the usual event class. This time we allocate a sample of size 10,
 arranged regularly along a line, and stipulate that the simulation should 
-continue for no more then 10000 time units. As we're only 
+continue for no more then 10\ :sup:`5` time units. As we're only 
 interested in the structure of the genealogy this time, we just 
 return the oriented forest at the first locus. Running this, we get 
 
 >>> oriented_forest_example(5)
 [-1, 0, 15, 0, 12, 12, 13, 11, 13, 11, 16, 16, 14, 14, 15, 0, 0]
 
-This corresponds to the forest:
+In this forest there are *four* roots: 1, 3, 15 and 16.
 
 .. image::  ../images/oriented-forest.png
    :align: center 
    :alt: An oriented forest 
    :width: 15cm
-
-In this forest there are *four* roots: 1, 3, 15 and 16.
 
 .. note:: This forest is **not** a correct representation of the 
     node times; in any simulation, node ``n + 1`` cannot be more recent 
@@ -196,72 +220,53 @@ In this forest there are *four* roots: 1, 3, 15 and 16.
 Coalescence times and MRCAs 
 ****************************
 
-The most important quantity in coalescent simulations is the 
-*coalescence time* for a set of individuals, or the time back 
-to their most recent common ancestor (MRCA). This is
-straightforward to do in :mod:`ercs` using the 
+In coalescent simulations we are usually interested in the  
+coalescence time of two or more lineages in our sample,
+which is the time back to their most recent
+recent common ancestor (MRCA).
+This is straightforward to do in :mod:`ercs` using the 
 :class:`ercs.MRCACalculator` class to find the most recent
 common ancestor of two nodes and then looking up the node 
 times list to find the time that this node entered the sample.
 
-Suppose we wished to find the coalescence time for a set of  
-lineages sampled at a regular set of distances. We can set our 
-sample so that the lineages are located at the relevant distances,
-but it's not clear how we can get::
-    
+In the following example, we print out the pairwise coalescence 
+time for a sample of size 4::
+
     def mrca_example(seed):
-        L = 40
-        sim = ercs.Simulator(L)
-        sim.sample = [None] + [(0, j) for j in range(1, 10)]
+        sim = ercs.Simulator(20)
+        sim.sample = [None] + [(j, j) for j in range(1, 5)]
         sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
         pi, tau = sim.run(seed)
-        sv = ercs.MRCACalculator(pi[0])
-        for j in range(2, 10):
-            mrca = sv.get_mrca(1, j)
-            coal_time = tau[0][mrca]
-            distance = ercs.torus_distance(sim.sample[1], sim.sample[j], L) 
-            print(distance, "\t", coal_time)
+        mc = ercs.MRCACalculator(pi[0])
+        print("pi  = ", pi)
+        print("tau = ", tau)
+        for j in range(1, 5):
+            for k in range(j + 1, 5):
+                mrca = mc.get_mrca(j, k)
+                t = tau[0][mrca]
+                print("\tmrca({0}, {1}) = {2} @ {3}".format(j, k, mrca, t))
+
+>>> mrca_example(16)
+pi  =  [[-1, 6, 6, 5, 5, 7, 7, 0]]
+tau =  [[-1, 0.0, 0.0, 0.0, 0.0, 1211.9345719754224, 140227.8861176924, 233684.26107484216]]
+        mrca(1, 2) = 6 @ 140227.8861176924
+        mrca(1, 3) = 7 @ 233684.26107484216
+        mrca(1, 4) = 7 @ 233684.26107484216
+        mrca(2, 3) = 7 @ 233684.26107484216
+        mrca(2, 4) = 7 @ 233684.26107484216
+        mrca(3, 4) = 5 @ 1211.9345719754224
 
 
-Running this
-
->>> mrca_example(2)
-1.0      293.516221072
-2.0      1240.09792256
-3.0      1505.42515816
-4.0      247645.676128
-5.0      247645.676128
-6.0      263761.554043
-7.0      263761.554043
-8.0      263761.554043
+Here we can see, for example, that the MRCA of nodes ``1`` and ``2`` is ``6`` 
+which can be read directly from ``pi``, as it is also their parent. Then, 
+reading the time of node ``6`` from ``tau`` we see that their coalescence 
+time is 140227.89.
 
 ****************************
-Multiple event classes
+DRAFT 
 ****************************
+Everything below this point is in development.
 
-Up to this point we have considered models in which a single class 
-of event occurs at rate 1.0. We can simulate an arbitrary number 
-of event classes happening at different rates, however; we simply
-set the :attr:`ercs.Simulator.event_classes` attribute to a list 
-consisting of :class:`ercs.EventClass` instances with the required rates and 
-properties.
-
-For example, Figure 2 of [BEV12]_  plots the probability of identity in
-state for three event regimes: one in which we have small events only;
-another in which we have large events only; and finally a regime
-in which we have a mixture of the two. The following example 
-returns the probability of identity for evenly spaced samples in a 
-single replicate::
-    
-    def mixed_events_example(seed):
-        L = 40
-        sim = ercs.Simulator(L)
-        sim.sample = [None] + [(0, j) for j in range(1, 10)]
-        sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
-        pi, tau = sim.run(seed)
-        sv = ercs.MRCACalculator(pi[0])
-        # TODO  Fill me in. 
-        
 ****************************
 Multiple loci
 ****************************
@@ -319,7 +324,7 @@ This is illustrated in the following example::
         sim = ercs.Simulator(40)
         sim.sample = [None] + [(10, 10), (20, 10)]
         sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
-        sim.max_lineage_memory = 1
+        sim.max_lineages = 10
         sim.recombination_probabilities = [0.1 for j in range(500)]
         pi, tau = sim.run(1)
 
@@ -332,11 +337,12 @@ Traceback (most recent call last):
      self.max_time, 0)
 _ercs.LibraryError: Out of lineage memory
 
-The example fails because we try to simulate 500 locus individuals with 
-only one MiB of memory. There are two things we can do to alleviate 
-this problem:
+The example fails because we try to simulate the
+ancestry of two 500 locus individuals with 
+a limit of only 10 extant individuals. There are two ways
+to avoid this problem:
 
-1. Increase the amount of memory available to the library;
+1. Increase the maximum number of extant lineages; or 
 
 2. Stop the simulation before it runs out of memory using the 
    :attr:`ercs.Simulator.max_time` attribute.
@@ -349,9 +355,35 @@ efficiently. The
 attributes provide a means of tuning this data structure for 
 performance when very large numbers of lineages are involved.
 
-**************************
-Parallelism
-**************************
+
+****************************
+A full example
+****************************
+
+Up to this point we have considered models in which a single class 
+of event occurs at rate 1.0. We can simulate an arbitrary number 
+of event classes happening at different rates, however; we simply
+set the :attr:`ercs.Simulator.event_classes` attribute to a list 
+consisting of :class:`ercs.EventClass` instances with the required rates and 
+properties.
+
+For example, Figure 2 of [BEV12]_  plots the probability of identity in
+state for three event regimes: one in which we have small events only;
+another in which we have large events only; and finally a regime
+in which we have a mixture of the two. The following example 
+returns the probability of identity for evenly spaced samples in a 
+single replicate::
+    
+    def mixed_events_example(seed):
+        L = 40
+        sim = ercs.Simulator(L)
+        sim.sample = [None] + [(0, j) for j in range(1, 10)]
+        sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
+        pi, tau = sim.run(seed)
+        sv = ercs.MRCACalculator(pi[0])
+        # TODO  Fill me in. 
+ 
+
 
 The most common use of coalescent simulation is to estimate the distribution 
 of some quantity by aggregating over many different replicates. This is 
@@ -439,10 +471,11 @@ and several other articles for details of the Disc model, and see
     .. attribute:: sample
        
         The location of lineages at the beginning of the simulation. This 
-        must be a non-empty list of two-tuples describing locations 
-        within the 2D space defined by the torus.
+        must be a list of 2-tuples describing locations 
+        within the 2D space defined by the torus. The zero'th element 
+        of this list **must be** ``None``.
 
-        **Default value:** None.
+        **Default value:** ``None``.
 
     .. attribute:: event_classes
         
@@ -450,7 +483,7 @@ and several other articles for details of the Disc model, and see
         :class:`ercs.EventClass`
         instances. There must be at least one event class specified.
         
-        **Default value:** None.
+        **Default value:** ``None``.
 
     .. attribute:: torus_diameter
 
@@ -487,16 +520,13 @@ and several other articles for details of the Disc model, and see
        
        **Default value:** 0.0
 
-    .. attribute:: max_lineage_memory
+    .. attribute:: max_lineages
 
-       The maximum amount of memory used for tracking lineages in MiB
-       (i.e., 2^20 bytes). If the number of lineages 
-       we are tracking grows so much that we exceed this limit, 
+       The maximum number of extant lineages in the simulation. 
+       If the number of lineages we are tracking exceeds this limit, 
        the simulation aborts and raises an :exc:`_ercs.LibraryError`.  
-       This is an only an approximate limit on the total 
-       amount of memory used by the simulation.
        
-       **Default value:** 32 MiB  
+       **Default value:** 1000 
 
     .. attribute:: kdtree_bucket_size 
 

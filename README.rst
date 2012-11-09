@@ -23,7 +23,7 @@ Here's a quick example for the impatient::
 
         import ercs
         sim = ercs.Simulator(10)
-        sim.sample = {1:(3, 2), 2:(6, 4), 3:(7, 0)}
+        sim.sample = [None, (3, 2), (6, 4), (7, 0)]
         sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
         pi, tau = sim.run(1)
 

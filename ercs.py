@@ -83,6 +83,17 @@ class Simulator(object):
         if self.num_parents == None:
             self.num_parents = 1 if m == 1 else 2 
 
+    def __convert_sample(self):
+        """
+        Coverts the sample of locations in the sample instance variable to 
+        the format used by _ercs, a zero-indexed list. The zero'th element 
+        of this list must be None
+        """
+        if self.sample[0] != None:
+            raise ValueError("zeroth element of list samples must be None")
+        sample = self.sample[1:] 
+        return sample
+
     def run(self, random_seed):
         """
         Runs the coalescent simulation for the specified random seed, 
@@ -101,15 +112,10 @@ class Simulator(object):
             error
         """
         self.__set_defaults()
-        
-        ll_event_classes = [ec.get_low_level_representation() 
-                for ec in self.event_classes]
-        
-        n = len(self.sample) if isinstance(self.sample, dict) else len(self.sample) - 1
-        sample = [self.sample[j] for j in range(1, n + 1)]
-
+        sample = self.__convert_sample()
+        llec = [ec.get_low_level_representation() for ec in self.event_classes]
         pi, tau = _ercs.simulate(random_seed, self.torus_diameter, 
-                self.num_parents, sample, ll_event_classes, 
+                self.num_parents, sample, llec, 
                 self.recombination_probabilities, self.kdtree_bucket_size, 
                 self.max_kdtree_insertions, self.max_lineages, 
                 self.max_time, 0)

@@ -29,33 +29,33 @@ def multiprocessing_example():
     print("Mean coalescence time =", sum(coal_times) / num_replicates)
 
 
-
 def first_example(seed):
     sim = ercs.Simulator(20)
-    sim.sample =  {1:(0, 0), 2:(0, 5), 3:(0, 10)}
+    sim.sample =  [None, (0, 0), (0, 5), (0, 10)]
     sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
     return sim.run(seed) 
 
 def oriented_forest_example(seed):
     sim = ercs.Simulator(20)
-    sim.sample = [(j, j) for j in range(10)]
+    sim.sample = [None] + [(j, j) for j in range(10)]
     sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
     sim.max_time = 1e5
     pi, tau = sim.run(seed)
     return pi[0]
 
 def mrca_example(seed):
-    L = 400
-    sim = ercs.Simulator(L)
-    sim.sample = [None] + [(0, j) for j in range(1, 10)]
+    sim = ercs.Simulator(20)
+    sim.sample = [None] + [(j, j) for j in range(1, 5)]
     sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
     pi, tau = sim.run(seed)
-    sv = ercs.MRCACalculator(pi[0])
-    for j in range(2, 10):
-        mrca = sv.get_mrca(1, j)
-        coal_time = tau[0][mrca]
-        distance = ercs.torus_distance(sim.sample[1], sim.sample[j], L) 
-        print(distance, "\t", coal_time)
+    mc = ercs.MRCACalculator(pi[0])
+    print("pi  = ", pi)
+    print("tau = ", tau)
+    for j in range(1, 5):
+        for k in range(j + 1, 5):
+            mrca = mc.get_mrca(j, k)
+            t = tau[0][mrca]
+            print("\tmrca({0}, {1}) = {2} @ {3}".format(j, k, mrca, t))
 
 
 def two_locus_example(seed, mu):
@@ -99,7 +99,7 @@ def main():
     #nca_example()
     #print(first_example(3))
     #print(oriented_forest_example(5))
-    mrca_example(3002)
+    mrca_example(16)
     #print(two_locus_example(30, 1e-7))
     #
     #out_of_memory_example()
