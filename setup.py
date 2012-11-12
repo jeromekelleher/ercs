@@ -13,7 +13,7 @@ _ercs_module = Extension('_ercs',
 
 setup(
     name = "ercs",
-    version = "1.0.8-dev",
+    version = "1.0.9-dev",
     description = "Coalescent simulations in continuous space",
     author = "Jerome Kelleher",
     author_email = "jerome.kelleher@ed.ac.uk",
