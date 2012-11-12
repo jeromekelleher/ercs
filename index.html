@@ -59,28 +59,29 @@
 <li><a class="reference internal" href="#introduction" id="id15">Introduction</a></li>
 <li><a class="reference internal" href="#examples" id="id16">Examples</a><ul>
 <li><a class="reference internal" href="#basic-usage" id="id17">Basic usage</a></li>
-<li><a class="reference internal" href="#oriented-trees-and-forests" id="id18">Oriented trees and forests</a></li>
-<li><a class="reference internal" href="#coalescence-times-and-mrcas" id="id19">Coalescence times and MRCAs</a></li>
-<li><a class="reference internal" href="#multiple-event-classes" id="id20">Multiple event classes</a></li>
+<li><a class="reference internal" href="#samples" id="id18">Samples</a></li>
+<li><a class="reference internal" href="#oriented-trees-and-forests" id="id19">Oriented trees and forests</a></li>
+<li><a class="reference internal" href="#coalescence-times-and-mrcas" id="id20">Coalescence times and MRCAs</a></li>
 <li><a class="reference internal" href="#multiple-loci" id="id21">Multiple loci</a></li>
-<li><a class="reference internal" href="#parallelism" id="id22">Parallelism</a></li>
+<li><a class="reference internal" href="#draft" id="id22">DRAFT</a></li>
+<li><a class="reference internal" href="#a-full-example" id="id23">A full example</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-ercs" id="id23"><a class="reference internal" href="#module-ercs" title="ercs"><tt class="xref py py-mod docutils literal"><span class="pre">ercs</span></tt></a> &#8211; Module reference</a><ul>
-<li><a class="reference internal" href="#event-classes" id="id24">Event Classes</a></li>
-<li><a class="reference internal" href="#ercs-simulator" id="id25"><a class="reference internal" href="#ercs.Simulator" title="ercs.Simulator"><tt class="xref py py-class docutils literal"><span class="pre">ercs.Simulator</span></tt></a></a></li>
-<li><a class="reference internal" href="#utilities" id="id26">Utilities</a></li>
+<li><a class="reference internal" href="#module-ercs" id="id24"><a class="reference internal" href="#module-ercs" title="ercs"><tt class="xref py py-mod docutils literal"><span class="pre">ercs</span></tt></a> &#8211; Module reference</a><ul>
+<li><a class="reference internal" href="#event-classes" id="id25">Event Classes</a></li>
+<li><a class="reference internal" href="#ercs-simulator" id="id26"><a class="reference internal" href="#ercs.Simulator" title="ercs.Simulator"><tt class="xref py py-class docutils literal"><span class="pre">ercs.Simulator</span></tt></a></a></li>
+<li><a class="reference internal" href="#utilities" id="id27">Utilities</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id13" id="id27"><a class="reference internal" href="#module-_ercs" title="_ercs"><tt class="xref py py-mod docutils literal"><span class="pre">_ercs</span></tt></a> &#8211; Module reference</a><ul>
-<li><a class="reference internal" href="#low-level-event-classes" id="id28">Low Level Event Classes</a></li>
-<li><a class="reference internal" href="#simulation-interface" id="id29">Simulation interface</a></li>
+<li><a class="reference internal" href="#id13" id="id28"><a class="reference internal" href="#module-_ercs" title="_ercs"><tt class="xref py py-mod docutils literal"><span class="pre">_ercs</span></tt></a> &#8211; Module reference</a><ul>
+<li><a class="reference internal" href="#low-level-event-classes" id="id29">Low Level Event Classes</a></li>
+<li><a class="reference internal" href="#simulation-interface" id="id30">Simulation interface</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#bibliography" id="id30">Bibliography</a></li>
+<li><a class="reference internal" href="#bibliography" id="id31">Bibliography</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#indices-and-tables" id="id31">Indices and tables</a></li>
+<li><a class="reference internal" href="#indices-and-tables" id="id32">Indices and tables</a></li>
 </ul>
 </div>
 <div class="section" id="introduction">
@@ -90,17 +91,17 @@ is a recently-introduced model of populations evolving in continuous space.
 In this model, individuals occupy a fixed location and all movement and
 reproduction occur as a result of extinction/recolonisation <em>events</em>. Events
 fall randomly in space, independent of the location of extant individuals.
-In each event some fraction of the
-local population dies and replaced by the descendants of a small
+In each event, some of the nearby individuals
+die and are replaced by the descendants of a small
 number of parents, drawn randomly from the population immediately
 before the event.  See <a class="reference internal" href="#e08">[E08]</a>, <a class="reference internal" href="#bev10">[BEV10]</a>, <a class="reference internal" href="#bke10">[BKE10]</a>  and <a class="reference internal" href="#bev12">[BEV12]</a> for
 discussions of the model, its background, and detailed mathematical
 results.</p>
 <p>This is the documentation for the <a class="reference internal" href="#module-ercs" title="ercs"><tt class="xref py py-mod docutils literal"><span class="pre">ercs</span></tt></a> Python module,
 which provides a straightforward interface to coalescent simulations
-for the extinction/recolonisation model. The basic approach to simulating
+for this model. The basic approach to simulating
 the history of a sample and interpreting the results is explained through
-a series of simple examples in the <a class="reference internal" href="#examples">Examples</a>  section
+a series of straightforward examples in the <a class="reference internal" href="#examples">Examples</a>  section
 along with thorough API documentation for the <a class="reference internal" href="#module-ercs" title="ercs"><tt class="xref py py-mod docutils literal"><span class="pre">ercs</span></tt></a> module.</p>
 </div>
 <div class="section" id="examples">
@@ -109,7 +110,7 @@ along with thorough API documentation for the <a class="reference internal" href
 <a class="reference internal" href="#module-ercs" title="ercs"><tt class="xref py py-mod docutils literal"><span class="pre">ercs</span></tt></a> follows a basic pattern:</p>
 <ol class="arabic simple">
 <li>Allocate an instance of <a class="reference internal" href="#ercs.Simulator" title="ercs.Simulator"><tt class="xref py py-class docutils literal"><span class="pre">ercs.Simulator</span></tt></a>;</li>
-<li>Set the properties of the desired simulation by setting values to the
+<li>Set the properties of the desired simulation by assigning values to the
 attributes of this object;</li>
 <li>Run the simulation for a given random seed using the <a class="reference internal" href="#ercs.Simulator.run" title="ercs.Simulator.run"><tt class="xref py py-meth docutils literal"><span class="pre">ercs.Simulator.run()</span></tt></a>
 method;</li>
@@ -131,71 +132,97 @@ simple example:</p>
 
 <span class="k">def</span> <span class="nf">first_example</span><span class="p">(</span><span class="n">seed</span><span class="p">):</span>
     <span class="n">sim</span> <span class="o">=</span> <span class="n">ercs</span><span class="o">.</span><span class="n">Simulator</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
-    <span class="n">sim</span><span class="o">.</span><span class="n">sample</span> <span class="o">=</span>  <span class="p">{</span><span class="mi">1</span><span class="p">:(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">2</span><span class="p">:(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="mi">3</span><span class="p">:(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)}</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">sample</span> <span class="o">=</span>  <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)]</span>
     <span class="n">sim</span><span class="o">.</span><span class="n">event_classes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ercs</span><span class="o">.</span><span class="n">DiscEventClass</span><span class="p">(</span><span class="n">u</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>In this example we allocate a simulator on a torus of diameter 20,
-set up our sample and event classes, and the run the simulation
-returning the resulting genealogy. The size of the torus is
+set up our sample and event classes, run the simulation
+and the resulting genealogy. The size of the torus is
 rather arbitrary, as the real size of the habitat that
 we imagine our population evolving on is determined by the scale
 of events relative to the size of the torus. Thus, the size of the
 torus can be any value you wish, once the spatial extent of events
-is scaled appropriately. For the following examples we&#8217;ll tend to
-use rather large events, as it&#8217;s useful to have examples that
-run quickly. These are very unrealistic evolutionary scenarios.</p>
-<p>The initial locations of the lineages whose ancestry we wish to simulate
-are specified using the <a class="reference internal" href="#ercs.Simulator.sample" title="ercs.Simulator.sample"><tt class="xref py py-attr docutils literal"><span class="pre">ercs.Simulator.sample</span></tt></a> attribute. These
-are 2-tuples describing locations in two dimensions on the torus.
-Here, we simulate the history of three locations,
-<tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">0)</span></tt>, <tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">5)</span></tt> and <tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">10)</span></tt>.</p>
-<p>Before we can simulate the history of this sample, we must describe the
-model under which we imagine the population has evolved. This is done by
-allocating some objects that describe the type of events that we
-are interested in, and assigning these to the
-<cite>ercs.Simulator.event_classes</cite> attribute. In the example above,
+is scaled appropriately.</p>
+<p>The details of the model under which we imagine the population has evolved
+are specified via one or more <em>event classes</em>.
+We allocate a list of objects
+that describe the type of events that we
+are interested in, and assign these to the
+<a class="reference internal" href="#ercs.Simulator.event_classes" title="ercs.Simulator.event_classes"><tt class="xref py py-attr docutils literal"><span class="pre">ercs.Simulator.event_classes</span></tt></a> attribute. In the example above,
 we state that all events in the simulation are from the Disc model,
 and they have radius <tt class="docutils literal"><span class="pre">r</span> <span class="pre">=</span>&nbsp; <span class="pre">1</span></tt> and impact <tt class="docutils literal"><span class="pre">u</span> <span class="pre">=</span> <span class="pre">0.5</span></tt>.
 There can be any number of event classes happening at different
 rates: see <a class="reference internal" href="#event-classes">Event Classes</a> for details.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In these examples we&#8217;ll tend to
+use rather large events, as it&#8217;s useful to have examples that
+run quickly. These represent highly unrealistic evolutionary scenarios.</p>
+</div>
+</div>
+<div class="section" id="samples">
+<h3><a class="toc-backref" href="#id18">Samples</a><a class="headerlink" href="#samples" title="Permalink to this headline">¶</a></h3>
+<p>The initial locations of the lineages whose ancestry we wish to simulate
+are specified using the <a class="reference internal" href="#ercs.Simulator.sample" title="ercs.Simulator.sample"><tt class="xref py py-attr docutils literal"><span class="pre">ercs.Simulator.sample</span></tt></a> attribute, which is a list of
+2-tuples describing locations on the torus.
+There is a slightly awkward issue to deal with about how we use this list,
+however.</p>
+<p>In the simulation algorithm, locations in the sample are mapped to the
+positive integers, <tt class="docutils literal"><span class="pre">1</span></tt> to <tt class="docutils literal"><span class="pre">n</span></tt>. These integers represent the nodes
+that the lineage occupies in the tree describing the history of the
+sample, and this relationship is most simply described using a list.
+The awkwardness arises in the discrepancy between this convention of
+counting from <tt class="docutils literal"><span class="pre">1</span></tt> and Python&#8217;s convention of making the index of
+the first element of a list <tt class="docutils literal"><span class="pre">0</span></tt>.</p>
+<p>To avoid inconsistencies between the input and output of the simulations,
+we therefore adopt the convention that the zero&#8217;th element of the sample
+must be <tt class="docutils literal"><span class="pre">None</span></tt>. So, in the sample above we simulate the history of
+three locations <tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">0)</span></tt>, <tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">5)</span></tt> and <tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">10)</span></tt>, which are
+mapped to nodes <tt class="docutils literal"><span class="pre">1</span></tt>, <tt class="docutils literal"><span class="pre">2</span></tt> and <tt class="docutils literal"><span class="pre">3</span></tt> respectively. Writing the
+mapping out explicitly we get:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">{</span><span class="n">j</span><span class="p">:</span> <span class="n">s</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">)}</span>
+<span class="go">{1: (0, 0), 2: (0, 5), 3: (0, 10)}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="oriented-trees-and-forests">
+<h3><a class="toc-backref" href="#id19">Oriented trees and forests</a><a class="headerlink" href="#oriented-trees-and-forests" title="Permalink to this headline">¶</a></h3>
 <p>After we have completed setting up the parameters of the simulation
 we can then run the simulation by calling the
 <a class="reference internal" href="#ercs.Simulator.run" title="ercs.Simulator.run"><tt class="xref py py-meth docutils literal"><span class="pre">ercs.Simulator.run()</span></tt></a> method for a given random seed.
-This returns the simulated history of the sample.</p>
-</div>
-<div class="section" id="oriented-trees-and-forests">
-<h3><a class="toc-backref" href="#id18">Oriented trees and forests</a><a class="headerlink" href="#oriented-trees-and-forests" title="Permalink to this headline">¶</a></h3>
-<p>The most part of <a class="reference internal" href="#module-ercs" title="ercs"><tt class="xref py py-mod docutils literal"><span class="pre">ercs</span></tt></a> to understand is the way in which we encode
-genealogies. Running the example above, we get</p>
+Running the example above, we get</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">first_example</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="go">([[-1, 4, 4, 5, 5, 0]], [[-1, 0.0, 0.0, 0.0, 30441.574004183603, 46750.11224375103]])</span>
 </pre></div>
 </div>
-<p>(Note there is nothing special about the seed 3 here&#8212;it is just a value which
-produced a neat example to discuss).
-This output completely describes the ancestry of the sample, although it&#8217;s not immediately
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">There is nothing special about the seed 3 here&#8212;it is just a value which
+produced a neat example to discuss.</p>
+</div>
+<p>This output completely describes the ancestry of the sample, although it&#8217;s not immediately
 obvious how. In <tt class="docutils literal"><span class="pre">ercs</span></tt> we use <em>oriented trees</em> to represent the genealogy of a sample.
-In an oriented tree, we are only interested in the parent-child relationships between nodes,
+In an oriented tree, we are only interested in parent-child relationships
 and don&#8217;t care about the order of children at a node. Therefore, in an oriented tree
 <tt class="docutils literal"><span class="pre">pi</span></tt>, the parent of node <tt class="docutils literal"><span class="pre">j</span></tt> is <tt class="docutils literal"><span class="pre">pi[j]</span></tt>. If we map each node in the tree to a unique
 positive integer and adopt the convention that any node whose parent is the
 special &#8220;null node&#8221; <tt class="docutils literal"><span class="pre">0</span></tt> is a root,
 we can then represent an oriented tree very simply as a list of integers.</p>
-<p>In our example above, we have a list of three locations as our sample, and so we map
-these to the integers <tt class="docutils literal"><span class="pre">1</span></tt>, <tt class="docutils literal"><span class="pre">2</span></tt> and <tt class="docutils literal"><span class="pre">3</span></tt> (i.e., lineage <tt class="docutils literal"><span class="pre">1</span></tt> is sampled at
-location <tt class="docutils literal"><span class="pre">(0,</span> <span class="pre">0)</span></tt> and so on). The <a class="reference internal" href="#ercs.Simulator.run" title="ercs.Simulator.run"><tt class="xref py py-meth docutils literal"><span class="pre">ercs.Simulator.run()</span></tt></a>
-method returns a tuple, <tt class="docutils literal"><span class="pre">(pi,</span> <span class="pre">tau)</span></tt>;
+<p>The <a class="reference internal" href="#ercs.Simulator.run" title="ercs.Simulator.run"><tt class="xref py py-meth docutils literal"><span class="pre">ercs.Simulator.run()</span></tt></a> method returns a tuple, <tt class="docutils literal"><span class="pre">(pi,</span> <span class="pre">tau)</span></tt>;
 <tt class="docutils literal"><span class="pre">pi</span></tt> is a list of oriented forests (one for each locus) and <tt class="docutils literal"><span class="pre">tau</span></tt> is a list of
 node times (one for each locus). In the example, we are dealing with a single locus
 only, so <tt class="docutils literal"><span class="pre">pi</span></tt> is a list consisting of one list, <tt class="docutils literal"><span class="pre">[-1,</span> <span class="pre">4,</span> <span class="pre">4,</span> <span class="pre">5,</span> <span class="pre">5,</span> <span class="pre">0]</span></tt>, that
 encodes the following tree:</p>
 <img alt="An oriented tree" class="align-center" src="_images/oriented-tree.png" style="width: 15cm;" />
-<p>It may be easier to see this if we explicitly map the nodes to their parents:</p>
+<p>The leaf nodes <tt class="docutils literal"><span class="pre">1</span></tt>, <tt class="docutils literal"><span class="pre">2</span></tt> and <tt class="docutils literal"><span class="pre">3</span></tt> correspond to the locations in our sample
+as discussed above.
+Mapping all nodes in the oriented tree to their parents explicitly, we get:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pi</span><span class="p">,</span> <span class="n">tau</span> <span class="o">=</span> <span class="n">first_example</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">node</span><span class="p">,</span> <span class="n">pi</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">node</span><span class="p">])</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">pi</span><span class="p">[</span><span class="mi">0</span><span class="p">]))]</span>
-<span class="go">[(1, 4), (2, 4), (3, 5), (4, 5), (5, 0)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">{</span><span class="n">node</span><span class="p">:</span> <span class="n">pi</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">node</span><span class="p">]</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">pi</span><span class="p">[</span><span class="mi">0</span><span class="p">]))}</span>
+<span class="go">{1: 4, 2: 4, 3: 5, 4: 5, 5: 0}</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -210,13 +237,12 @@ records the time that the associated lineage entered the sample, looking
 backwards in time (hence, for each node in the sample the time is <tt class="docutils literal"><span class="pre">0.0</span></tt>).</p>
 <p>Oriented <em>forests</em> occur when there is more than one root in a list <tt class="docutils literal"><span class="pre">pi</span></tt>, and
 so we have a set of disconnected trees. This can happen when we specify
-the <tt class="docutils literal"><span class="pre">max_time</span></tt> attribute, potentially stopping the simulation before
+the <a class="reference internal" href="#ercs.Simulator.max_time" title="ercs.Simulator.max_time"><tt class="xref py py-attr docutils literal"><span class="pre">ercs.Simulator.max_time</span></tt></a> attribute, potentially stopping the simulation before
 the sample has completely coalesced. Consider the following example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">oriented_forest_example</span><span class="p">(</span><span class="n">seed</span><span class="p">):</span>
-    <span class="n">L</span> <span class="o">=</span> <span class="mi">20</span>
-    <span class="n">sim</span> <span class="o">=</span> <span class="n">ercs</span><span class="o">.</span><span class="n">Simulator</span><span class="p">(</span><span class="n">L</span><span class="p">)</span>
+    <span class="n">sim</span> <span class="o">=</span> <span class="n">ercs</span><span class="o">.</span><span class="n">Simulator</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">sample</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">+</span> <span class="p">[(</span><span class="n">j</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
     <span class="n">sim</span><span class="o">.</span><span class="n">event_classes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ercs</span><span class="o">.</span><span class="n">DiscEventClass</span><span class="p">(</span><span class="n">u</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
-    <span class="n">sim</span><span class="o">.</span><span class="n">sample</span> <span class="o">=</span> <span class="p">[(</span><span class="n">j</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
     <span class="n">sim</span><span class="o">.</span><span class="n">max_time</span> <span class="o">=</span> <span class="mf">1e5</span>
     <span class="n">pi</span><span class="p">,</span> <span class="n">tau</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">pi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -225,16 +251,15 @@ the sample has completely coalesced. Consider the following example:</p>
 <p>Here we allocate a Simulator on a torus of diameter 20 as before and
 use the usual event class. This time we allocate a sample of size 10,
 arranged regularly along a line, and stipulate that the simulation should
-continue for no more then 10000 time units. As we&#8217;re only
+continue for no more then 10<sup>5</sup> time units. As we&#8217;re only
 interested in the structure of the genealogy this time, we just
 return the oriented forest at the first locus. Running this, we get</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">oriented_forest_example</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 <span class="go">[-1, 0, 15, 0, 12, 12, 13, 11, 13, 11, 16, 16, 14, 14, 15, 0, 0]</span>
 </pre></div>
 </div>
-<p>This corresponds to the forest:</p>
-<img alt="An oriented forest" class="align-center" src="_images/oriented-forest.png" style="width: 15cm;" />
 <p>In this forest there are <em>four</em> roots: 1, 3, 15 and 16.</p>
+<img alt="An oriented forest" class="align-center" src="_images/oriented-forest.png" style="width: 15cm;" />
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This forest is <strong>not</strong> a correct representation of the
@@ -243,47 +268,141 @@ than node <tt class="docutils literal"><span class="pre">n</span></tt>.</p>
 </div>
 </div>
 <div class="section" id="coalescence-times-and-mrcas">
-<h3><a class="toc-backref" href="#id19">Coalescence times and MRCAs</a><a class="headerlink" href="#coalescence-times-and-mrcas" title="Permalink to this headline">¶</a></h3>
-<p>The most important quantity in coalescent simulations is the
-<em>coalescence time</em> for a set of individuals, or the time back
-to their most recent common ancestor (MRCA). This is
-straightforward to do in <a class="reference internal" href="#module-ercs" title="ercs"><tt class="xref py py-mod docutils literal"><span class="pre">ercs</span></tt></a> using the
+<h3><a class="toc-backref" href="#id20">Coalescence times and MRCAs</a><a class="headerlink" href="#coalescence-times-and-mrcas" title="Permalink to this headline">¶</a></h3>
+<p>In coalescent simulations we are usually interested in the
+coalescence time of two or more lineages in our sample,
+which is the time back to their most recent
+recent common ancestor (MRCA).
+This is straightforward to do in <a class="reference internal" href="#module-ercs" title="ercs"><tt class="xref py py-mod docutils literal"><span class="pre">ercs</span></tt></a> using the
 <a class="reference internal" href="#ercs.MRCACalculator" title="ercs.MRCACalculator"><tt class="xref py py-class docutils literal"><span class="pre">ercs.MRCACalculator</span></tt></a> class to find the most recent
 common ancestor of two nodes and then looking up the node
 times list to find the time that this node entered the sample.</p>
-<p>Suppose we wished to find the coalescence time for a set of
-lineages sampled at a regular set of distances. We can set our
-sample so that the lineages are located at the relevant distances,
-but it&#8217;s not clear how we can get:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">mrca_example</span><span class="p">(</span><span class="n">seed</span><span class="p">):</span>
-    <span class="n">L</span> <span class="o">=</span> <span class="mi">40</span>
-    <span class="n">sim</span> <span class="o">=</span> <span class="n">ercs</span><span class="o">.</span><span class="n">Simulator</span><span class="p">(</span><span class="n">L</span><span class="p">)</span>
-    <span class="n">sim</span><span class="o">.</span><span class="n">sample</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">+</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">)]</span>
+<p>In the following example, we print out the pairwise coalescence
+time for a sample of size 4:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">mrca_example</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="n">sim</span> <span class="o">=</span> <span class="n">ercs</span><span class="o">.</span><span class="n">Simulator</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">sample</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">+</span> <span class="p">[(</span><span class="n">j</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
     <span class="n">sim</span><span class="o">.</span><span class="n">event_classes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ercs</span><span class="o">.</span><span class="n">DiscEventClass</span><span class="p">(</span><span class="n">u</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
     <span class="n">pi</span><span class="p">,</span> <span class="n">tau</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
-    <span class="n">sv</span> <span class="o">=</span> <span class="n">ercs</span><span class="o">.</span><span class="n">MRCACalculator</span><span class="p">(</span><span class="n">pi</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
-        <span class="n">mrca</span> <span class="o">=</span> <span class="n">sv</span><span class="o">.</span><span class="n">get_mrca</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
-        <span class="n">coal_time</span> <span class="o">=</span> <span class="n">tau</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">mrca</span><span class="p">]</span>
-        <span class="n">distance</span> <span class="o">=</span> <span class="n">ercs</span><span class="o">.</span><span class="n">torus_distance</span><span class="p">(</span><span class="n">sim</span><span class="o">.</span><span class="n">sample</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">sim</span><span class="o">.</span><span class="n">sample</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">L</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="s">&quot;</span><span class="se">\t</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">coal_time</span><span class="p">)</span>
+    <span class="n">mc</span> <span class="o">=</span> <span class="n">ercs</span><span class="o">.</span><span class="n">MRCACalculator</span><span class="p">(</span><span class="n">pi</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;pi  = &quot;</span><span class="p">,</span> <span class="n">pi</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;tau = &quot;</span><span class="p">,</span> <span class="n">tau</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">mrca</span> <span class="o">=</span> <span class="n">mc</span><span class="o">.</span><span class="n">get_mrca</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">tau</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">mrca</span><span class="p">]</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">mrca({0}, {1}) = {2} @ {3:.2f}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">mrca</span><span class="p">,</span> <span class="n">t</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>Running this</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mrca_example</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-<span class="go">1.0      293.516221072</span>
-<span class="go">2.0      1240.09792256</span>
-<span class="go">3.0      1505.42515816</span>
-<span class="go">4.0      247645.676128</span>
-<span class="go">5.0      247645.676128</span>
-<span class="go">6.0      263761.554043</span>
-<span class="go">7.0      263761.554043</span>
-<span class="go">8.0      263761.554043</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mrca_example</span><span class="p">(</span><span class="mi">10292</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="go">pi  =  [[-1, 5, 5, 6, 6, 7, 7, 0]]</span>
+<span class="go">tau =  [[-1, 0.0, 0.0, 0.0, 0.0, 1495.7013764597423, 51935.87882804881, 231859.81270041558]]</span>
+<span class="go">        mrca(1, 2) = 5 @ 1495.70</span>
+<span class="go">        mrca(1, 3) = 7 @ 231859.81</span>
+<span class="go">        mrca(1, 4) = 7 @ 231859.81</span>
+<span class="go">        mrca(2, 3) = 7 @ 231859.81</span>
+<span class="go">        mrca(2, 4) = 7 @ 231859.81</span>
+<span class="go">        mrca(3, 4) = 6 @ 51935.88</span>
 </pre></div>
 </div>
+<p>Here we can see, for example, that the MRCA of nodes <tt class="docutils literal"><span class="pre">1</span></tt> and <tt class="docutils literal"><span class="pre">2</span></tt> is <tt class="docutils literal"><span class="pre">5</span></tt>
+which can be read directly from <tt class="docutils literal"><span class="pre">pi</span></tt>, as it is also their parent. Then,
+reading the time of node <tt class="docutils literal"><span class="pre">5</span></tt> from <tt class="docutils literal"><span class="pre">tau</span></tt> we see that their coalescence
+time is 1495.70.</p>
 </div>
-<div class="section" id="multiple-event-classes">
-<h3><a class="toc-backref" href="#id20">Multiple event classes</a><a class="headerlink" href="#multiple-event-classes" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="multiple-loci">
+<h3><a class="toc-backref" href="#id21">Multiple loci</a><a class="headerlink" href="#multiple-loci" title="Permalink to this headline">¶</a></h3>
+<p>In the extinction/recolonisation model
+recombination rates are specified by
+describing the probability that two adjacent loci <tt class="docutils literal"><span class="pre">l</span></tt>
+and <tt class="docutils literal"><span class="pre">l</span> <span class="pre">+</span> <span class="pre">1</span></tt> descend from different parents at an event. Therefore, in
+a system of <tt class="docutils literal"><span class="pre">m</span></tt> loci, we need a list of <tt class="docutils literal"><span class="pre">m</span> <span class="pre">-</span> <span class="pre">1</span></tt> recombination
+probabilities to describe the system in a general way.</p>
+<p>The <a class="reference internal" href="#ercs.Simulator.recombination_probabilities" title="ercs.Simulator.recombination_probabilities"><tt class="xref py py-attr docutils literal"><span class="pre">ercs.Simulator.recombination_probabilities</span></tt></a> attribute is used
+to describe both the number of loci and the recombination rates between them.
+By default, this attribute is set to the empty list, specifying a single
+locus system. In the following example
+we compute the joint probability of identity in state given a mutation
+rate <tt class="docutils literal"><span class="pre">mu</span></tt> at two loci in a single
+replicate:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">two_locus_example</span><span class="p">(</span><span class="n">seed</span><span class="p">):</span>
+    <span class="n">mu</span> <span class="o">=</span> <span class="mf">1e-7</span>
+    <span class="n">sim</span> <span class="o">=</span> <span class="n">ercs</span><span class="o">.</span><span class="n">Simulator</span><span class="p">(</span><span class="mi">40</span><span class="p">)</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">sample</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">+</span> <span class="p">[(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">10</span><span class="p">)]</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">event_classes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ercs</span><span class="o">.</span><span class="n">DiscEventClass</span><span class="p">(</span><span class="n">u</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">recombination_probabilities</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">]</span>
+    <span class="n">pi</span><span class="p">,</span> <span class="n">tau</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">mu</span> <span class="o">*</span> <span class="n">tau</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">])</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">mu</span> <span class="o">*</span> <span class="n">tau</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">3</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Since our sample is of size two, the MRCA of nodes <tt class="docutils literal"><span class="pre">1</span></tt> and <tt class="docutils literal"><span class="pre">2</span></tt> must
+be <tt class="docutils literal"><span class="pre">3</span></tt>. The probability of identity in state for two genes with coalescence
+time <tt class="docutils literal"><span class="pre">t</span></tt> and mutation at rate <tt class="docutils literal"><span class="pre">mu</span></tt>
+under the infinite sites model is <tt class="docutils literal"><span class="pre">exp(-2</span> <span class="pre">*</span> <span class="pre">mu</span> <span class="pre">*</span> <span class="pre">t)</span></tt>. The joint probability
+of identity is then the product of the probability of identity at
+each locus.</p>
+<p>Running this example gives us:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">two_locus_example</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+<span class="go">0.06931300943428219</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Loci are zero-indexed in the usual Python way, unlike individuals
+in the sample.</p>
+</div>
+<p>The example above shows how we can simulate two loci, and can be generalised
+to larger numbers of loci in a straightforward way. However, since the number
+of lineages can grow to be very large when we deal with large numbers of loci,
+it may be necessary to become more familiar with some more advanced properties
+of the simulation implementation.</p>
+<p>The first issue is to decide how much memory you are willing to dedicate
+to the task of tracking lineages; this is done by specifiying the maximum
+number of lineages in the sample using the
+<a class="reference internal" href="#ercs.Simulator.max_lineages" title="ercs.Simulator.max_lineages"><tt class="xref py py-attr docutils literal"><span class="pre">ercs.Simulator.max_lineages</span></tt></a> attribute.
+When the number of lineages in the sample
+exceeds this limit, the simulation fails with an exception, as
+illustrated in the following example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">out_of_memory_example</span><span class="p">():</span>
+    <span class="n">sim</span> <span class="o">=</span> <span class="n">ercs</span><span class="o">.</span><span class="n">Simulator</span><span class="p">(</span><span class="mi">40</span><span class="p">)</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">sample</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">+</span> <span class="p">[(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">10</span><span class="p">)]</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">event_classes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ercs</span><span class="o">.</span><span class="n">DiscEventClass</span><span class="p">(</span><span class="n">u</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">max_lineages</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">recombination_probabilities</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">499</span><span class="p">)]</span>
+    <span class="n">pi</span><span class="p">,</span> <span class="n">tau</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">out_of_memory_example</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;&lt;stdin&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n">&lt;module&gt;</span>
+  File <span class="nb">&quot;example.py&quot;</span>, line <span class="m">77</span>, in <span class="n">out_of_memory_example</span>
+    <span class="n">pi</span><span class="p">,</span> <span class="n">tau</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+  File <span class="nb">&quot;ercs.py&quot;</span>, line <span class="m">116</span>, in <span class="n">run</span>
+     <span class="bp">self</span><span class="o">.</span><span class="n">max_time</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gr">_ercs.LibraryError</span>: <span class="n">Out of lineage memory</span>
+</pre></div>
+</div>
+<p>The example fails because we try to simulate the
+ancestry of two 500 locus individuals with a limit of only 10 extant individuals.
+If we wish to simulate the entire history of the sample, we must increase
+the number maximum number of lineages. On the other hand, if we are only
+interested in the recent history of the sample, we can stop the simulation
+before the sample gets too large using the <a class="reference internal" href="#ercs.Simulator.max_time" title="ercs.Simulator.max_time"><tt class="xref py py-attr docutils literal"><span class="pre">ercs.Simulator.max_time</span></tt></a>
+attribute.</p>
+<p>Lineages are indexed using a kdtree to allow us to find
+the lineages that may potentially be hit by an event
+efficiently. The
+<a class="reference internal" href="#ercs.Simulator.kdtree_bucket_size" title="ercs.Simulator.kdtree_bucket_size"><tt class="xref py py-attr docutils literal"><span class="pre">ercs.Simulator.kdtree_bucket_size</span></tt></a>
+<a class="reference internal" href="#ercs.Simulator.max_kdtree_insertions" title="ercs.Simulator.max_kdtree_insertions"><tt class="xref py py-attr docutils literal"><span class="pre">ercs.Simulator.max_kdtree_insertions</span></tt></a>
+attributes provide a means of tuning this data structure for
+performance when very large numbers of lineages are involved.</p>
+</div>
+<div class="section" id="draft">
+<h3><a class="toc-backref" href="#id22">DRAFT</a><a class="headerlink" href="#draft" title="Permalink to this headline">¶</a></h3>
+<p>Everything below this point is in development.</p>
+</div>
+<div class="section" id="a-full-example">
+<h3><a class="toc-backref" href="#id23">A full example</a><a class="headerlink" href="#a-full-example" title="Permalink to this headline">¶</a></h3>
 <p>Up to this point we have considered models in which a single class
 of event occurs at rate 1.0. We can simulate an arbitrary number
 of event classes happening at different rates, however; we simply
@@ -306,93 +425,6 @@ single replicate:</p>
     <span class="c"># TODO  Fill me in.</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="multiple-loci">
-<h3><a class="toc-backref" href="#id21">Multiple loci</a><a class="headerlink" href="#multiple-loci" title="Permalink to this headline">¶</a></h3>
-<p>For meaningful multilocus simulations we must specify the rate at which
-recombination occurs between loci. In the extinction/recolonisation model
-this is done by describing the probability that two adjacent loci <tt class="docutils literal"><span class="pre">l</span></tt>
-and <tt class="docutils literal"><span class="pre">l</span> <span class="pre">+</span> <span class="pre">1</span></tt> descend from different parents at an event. Therefore, in
-a system of <tt class="docutils literal"><span class="pre">m</span></tt> loci, we need a list of <tt class="docutils literal"><span class="pre">m</span> <span class="pre">-</span> <span class="pre">1</span></tt> recombination
-probabilities to describe the system in a general way.</p>
-<p>The <a class="reference internal" href="#ercs.Simulator.recombination_probabilities" title="ercs.Simulator.recombination_probabilities"><tt class="xref py py-attr docutils literal"><span class="pre">ercs.Simulator.recombination_probabilities</span></tt></a> attribute is then used
-to describe both the number of loci and the recombination rates between them.
-By default, this attribute is set to the empty list. In the following example
-we compute the joint probability of identity in state given a mutation
-rate <tt class="docutils literal"><span class="pre">mu</span></tt> at two loci in a single
-replicate:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">two_locus_example</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">mu</span><span class="p">):</span>
-    <span class="n">sim</span> <span class="o">=</span> <span class="n">ercs</span><span class="o">.</span><span class="n">Simulator</span><span class="p">(</span><span class="mi">40</span><span class="p">)</span>
-    <span class="n">sim</span><span class="o">.</span><span class="n">sample</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">+</span> <span class="p">[(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">10</span><span class="p">)]</span>
-    <span class="n">sim</span><span class="o">.</span><span class="n">event_classes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ercs</span><span class="o">.</span><span class="n">DiscEventClass</span><span class="p">(</span><span class="n">u</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
-    <span class="n">sim</span><span class="o">.</span><span class="n">recombination_probabilities</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">]</span>
-    <span class="n">pi</span><span class="p">,</span> <span class="n">tau</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
-    <span class="n">t1</span> <span class="o">=</span> <span class="n">tau</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">ercs</span><span class="o">.</span><span class="n">MRCACalculator</span><span class="p">(</span><span class="n">pi</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">get_mrca</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)]</span>
-    <span class="n">t2</span> <span class="o">=</span> <span class="n">tau</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">ercs</span><span class="o">.</span><span class="n">MRCACalculator</span><span class="p">(</span><span class="n">pi</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">get_mrca</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)]</span>
-    <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">mu</span> <span class="o">*</span> <span class="n">t1</span><span class="p">)</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">mu</span> <span class="o">*</span> <span class="n">t2</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>(Since our sample is of size two, the MRCA of nodes <tt class="docutils literal"><span class="pre">1</span></tt> and <tt class="docutils literal"><span class="pre">2</span></tt> must
-be <tt class="docutils literal"><span class="pre">3</span></tt>, so we don&#8217;t really need to allocate <a class="reference internal" href="#ercs.MRCACalculator" title="ercs.MRCACalculator"><tt class="xref py py-class docutils literal"><span class="pre">ercs.MRCACalculator</span></tt></a>
-objects in this instance. However, in general we need to allocate a different
-<a class="reference internal" href="#ercs.MRCACalculator" title="ercs.MRCACalculator"><tt class="xref py py-class docutils literal"><span class="pre">ercs.MRCACalculator</span></tt></a> for each locus.)</p>
-<p>Running this example gives us:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">two_locus_example</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mf">1e-7</span><span class="p">)</span>
-<span class="go">0.06931300943428219</span>
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Loci are zero-indexed in the usual Python way, unlike individuals
-in the sample.</p>
-</div>
-<p>The example above shows how we can simulate two loci. This can be generalised
-to larger numbers of loci in a straightforward way. However, since the number
-of lineages can grow to be very large when we deal with large numbers of loci,
-it may be necessary to become more familiar with some more advanced properties
-of the simulation implementation.</p>
-<p>The first issue is to decide how much memory you are willing to dedicate
-to the task of tracking lineages. The C library allocates all its memory in
-advance and fails in a predictable way when it reaches the point in the
-simulation where there are too many lineages to fit into this space.
-This is illustrated in the following example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">out_of_memory_example</span><span class="p">():</span>
-    <span class="n">sim</span> <span class="o">=</span> <span class="n">ercs</span><span class="o">.</span><span class="n">Simulator</span><span class="p">(</span><span class="mi">40</span><span class="p">)</span>
-    <span class="n">sim</span><span class="o">.</span><span class="n">sample</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">+</span> <span class="p">[(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">10</span><span class="p">)]</span>
-    <span class="n">sim</span><span class="o">.</span><span class="n">event_classes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ercs</span><span class="o">.</span><span class="n">DiscEventClass</span><span class="p">(</span><span class="n">u</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
-    <span class="n">sim</span><span class="o">.</span><span class="n">max_lineage_memory</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">sim</span><span class="o">.</span><span class="n">recombination_probabilities</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">500</span><span class="p">)]</span>
-    <span class="n">pi</span><span class="p">,</span> <span class="n">tau</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">out_of_memory_example</span><span class="p">()</span>
-<span class="gt">Traceback (most recent call last):</span>
-  File <span class="nb">&quot;&lt;stdin&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n">&lt;module&gt;</span>
-  File <span class="nb">&quot;example.py&quot;</span>, line <span class="m">77</span>, in <span class="n">out_of_memory_example</span>
-    <span class="n">pi</span><span class="p">,</span> <span class="n">tau</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-  File <span class="nb">&quot;ercs.py&quot;</span>, line <span class="m">116</span>, in <span class="n">run</span>
-     <span class="bp">self</span><span class="o">.</span><span class="n">max_time</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="gr">_ercs.LibraryError</span>: <span class="n">Out of lineage memory</span>
-</pre></div>
-</div>
-<p>The example fails because we try to simulate 500 locus individuals with
-only one MiB of memory. There are two things we can do to alleviate
-this problem:</p>
-<ol class="arabic simple">
-<li>Increase the amount of memory available to the library;</li>
-<li>Stop the simulation before it runs out of memory using the
-<a class="reference internal" href="#ercs.Simulator.max_time" title="ercs.Simulator.max_time"><tt class="xref py py-attr docutils literal"><span class="pre">ercs.Simulator.max_time</span></tt></a> attribute.</li>
-</ol>
-<p>Lineages are indexed using a kdtree to allow us to find
-the lineages that may potentially be hit by an event
-efficiently. The
-<a class="reference internal" href="#ercs.Simulator.kdtree_bucket_size" title="ercs.Simulator.kdtree_bucket_size"><tt class="xref py py-attr docutils literal"><span class="pre">ercs.Simulator.kdtree_bucket_size</span></tt></a>
-<a class="reference internal" href="#ercs.Simulator.max_kdtree_insertions" title="ercs.Simulator.max_kdtree_insertions"><tt class="xref py py-attr docutils literal"><span class="pre">ercs.Simulator.max_kdtree_insertions</span></tt></a>
-attributes provide a means of tuning this data structure for
-performance when very large numbers of lineages are involved.</p>
-</div>
-<div class="section" id="parallelism">
-<h3><a class="toc-backref" href="#id22">Parallelism</a><a class="headerlink" href="#parallelism" title="Permalink to this headline">¶</a></h3>
 <p>The most common use of coalescent simulation is to estimate the distribution
 of some quantity by aggregating over many different replicates. This is
 done in <tt class="docutils literal"><span class="pre">ercs</span></tt> by running the <tt class="docutils literal"><span class="pre">run</span></tt> method with different random
@@ -446,11 +478,11 @@ of Python (using the <tt class="docutils literal"><span class="pre">mt19937</spa
 </div>
 </div>
 <div class="section" id="module-ercs">
-<span id="ercs-module-reference"></span><h2><a class="toc-backref" href="#id23"><a class="reference internal" href="#module-ercs" title="ercs"><tt class="xref py py-mod docutils literal"><span class="pre">ercs</span></tt></a> &#8211; Module reference</a><a class="headerlink" href="#module-ercs" title="Permalink to this headline">¶</a></h2>
+<span id="ercs-module-reference"></span><h2><a class="toc-backref" href="#id24"><a class="reference internal" href="#module-ercs" title="ercs"><tt class="xref py py-mod docutils literal"><span class="pre">ercs</span></tt></a> &#8211; Module reference</a><a class="headerlink" href="#module-ercs" title="Permalink to this headline">¶</a></h2>
 <p>Simulate the coalescent in the extinction recolonisation model under a 
 flexible set of parameters.</p>
 <div class="section" id="event-classes">
-<h3><a class="toc-backref" href="#id24">Event Classes</a><a class="headerlink" href="#event-classes" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id25">Event Classes</a><a class="headerlink" href="#event-classes" title="Permalink to this headline">¶</a></h3>
 <p>The classes of event in a given simulation are specified by
 providing a list of Event Class instances
 in the <a class="reference internal" href="#ercs.Simulator.event_classes" title="ercs.Simulator.event_classes"><tt class="xref py py-attr docutils literal"><span class="pre">ercs.Simulator.event_classes</span></tt></a> attribute.
@@ -486,7 +518,7 @@ around the centre of the event according to a 2D Gaussian with variance
 
 </div>
 <div class="section" id="ercs-simulator">
-<h3><a class="toc-backref" href="#id25"><a class="reference internal" href="#ercs.Simulator" title="ercs.Simulator"><tt class="xref py py-class docutils literal"><span class="pre">ercs.Simulator</span></tt></a></a><a class="headerlink" href="#ercs-simulator" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id26"><a class="reference internal" href="#ercs.Simulator" title="ercs.Simulator"><tt class="xref py py-class docutils literal"><span class="pre">ercs.Simulator</span></tt></a></a><a class="headerlink" href="#ercs-simulator" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="ercs.Simulator">
 <em class="property">class </em><tt class="descclassname">ercs.</tt><tt class="descname">Simulator</tt><big>(</big><em>torus_diameter</em><big>)</big><a class="headerlink" href="#ercs.Simulator" title="Permalink to this definition">¶</a></dt>
@@ -500,9 +532,10 @@ before calling simulate.</p>
 <dt id="ercs.Simulator.sample">
 <tt class="descname">sample</tt><a class="headerlink" href="#ercs.Simulator.sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>The location of lineages at the beginning of the simulation. This
-must be a non-empty list of two-tuples describing locations
-within the 2D space defined by the torus.</p>
-<p><strong>Default value:</strong> None.</p>
+must be a list of 2-tuples describing locations
+within the 2D space defined by the torus. The zero&#8217;th element
+of this list <strong>must be</strong> <tt class="docutils literal"><span class="pre">None</span></tt>.</p>
+<p><strong>Default value:</strong> <tt class="docutils literal"><span class="pre">None</span></tt>.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -511,7 +544,7 @@ within the 2D space defined by the torus.</p>
 <dd><p>The event classes to simulate. This must be a list of
 <a class="reference internal" href="#ercs.EventClass" title="ercs.EventClass"><tt class="xref py py-class docutils literal"><span class="pre">ercs.EventClass</span></tt></a>
 instances. There must be at least one event class specified.</p>
-<p><strong>Default value:</strong> None.</p>
+<p><strong>Default value:</strong> <tt class="docutils literal"><span class="pre">None</span></tt>.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -554,15 +587,12 @@ coalesced.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="ercs.Simulator.max_lineage_memory">
-<tt class="descname">max_lineage_memory</tt><a class="headerlink" href="#ercs.Simulator.max_lineage_memory" title="Permalink to this definition">¶</a></dt>
-<dd><p>The maximum amount of memory used for tracking lineages in MiB
-(i.e., 2^20 bytes). If the number of lineages
-we are tracking grows so much that we exceed this limit,
-the simulation aborts and raises an <tt class="xref py py-exc docutils literal"><span class="pre">_ercs.LibraryError</span></tt>.
-This is an only an approximate limit on the total
-amount of memory used by the simulation.</p>
-<p><strong>Default value:</strong> 32 MiB</p>
+<dt id="ercs.Simulator.max_lineages">
+<tt class="descname">max_lineages</tt><a class="headerlink" href="#ercs.Simulator.max_lineages" title="Permalink to this definition">¶</a></dt>
+<dd><p>The maximum number of extant lineages in the simulation.
+If the number of lineages we are tracking exceeds this limit,
+the simulation aborts and raises an <tt class="xref py py-exc docutils literal"><span class="pre">_ercs.LibraryError</span></tt>.</p>
+<p><strong>Default value:</strong> 1000</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -629,7 +659,7 @@ error</td>
 
 </div>
 <div class="section" id="utilities">
-<h3><a class="toc-backref" href="#id26">Utilities</a><a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id27">Utilities</a><a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="ercs.torus_distance">
 <tt class="descclassname">ercs.</tt><tt class="descname">torus_distance</tt><big>(</big><em>x</em>, <em>y</em>, <em>L</em><big>)</big><a class="headerlink" href="#ercs.torus_distance" title="Permalink to this definition">¶</a></dt>
@@ -700,14 +730,14 @@ or 0 if the nodes belong to different trees.</p>
 </div>
 </div>
 <div class="section" id="id13">
-<h2><a class="toc-backref" href="#id27"><a class="reference internal" href="#module-_ercs" title="_ercs"><tt class="xref py py-mod docutils literal"><span class="pre">_ercs</span></tt></a> &#8211; Module reference</a><a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id28"><a class="reference internal" href="#module-_ercs" title="_ercs"><tt class="xref py py-mod docutils literal"><span class="pre">_ercs</span></tt></a> &#8211; Module reference</a><a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
 <p>The <a class="reference internal" href="#module-ercs" title="ercs"><tt class="xref py py-mod docutils literal"><span class="pre">ercs</span></tt></a> module delegates the majority of its work to the low-level <a class="reference internal" href="#module-_ercs" title="_ercs"><tt class="xref py py-mod docutils literal"><span class="pre">_ercs</span></tt></a>
 extension module, which is written in C. It is not recommended to call this
 module directly - the <a class="reference internal" href="#module-ercs" title="ercs"><tt class="xref py py-mod docutils literal"><span class="pre">ercs</span></tt></a> module provides all of the functionality with a
 much more straightforward interface. In the interested of completeness,
 however, the low-level module is documented here.</p>
 <span class="target" id="module-_ercs"></span><div class="section" id="low-level-event-classes">
-<h3><a class="toc-backref" href="#id28">Low Level Event Classes</a><a class="headerlink" href="#low-level-event-classes" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id29">Low Level Event Classes</a><a class="headerlink" href="#low-level-event-classes" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>In the <tt class="docutils literal"><span class="pre">_ercs</span></tt> module, event classes are specified by dictionaries  of key-value pairs  describing the rate events of a particular class happen, the type of event  and the parameters unique to each event class. Each dictionary must have two fields: <tt class="docutils literal"><span class="pre">rate</span></tt> and <tt class="docutils literal"><span class="pre">type</span></tt>. The <tt class="docutils literal"><span class="pre">rate</span></tt> field specifies the rate that this class of events happens at and is a float. The <tt class="docutils literal"><span class="pre">type</span></tt> field  specifies the type of events. The supported event classes are:</div></blockquote>
 <dl class="docutils">
@@ -718,7 +748,7 @@ however, the low-level module is documented here.</p>
 </dl>
 </div>
 <div class="section" id="simulation-interface">
-<h3><a class="toc-backref" href="#id29">Simulation interface</a><a class="headerlink" href="#simulation-interface" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id30">Simulation interface</a><a class="headerlink" href="#simulation-interface" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="_ercs.simulate">
 <tt class="descclassname">_ercs.</tt><tt class="descname">simulate</tt><big>(</big><big>)</big><a class="headerlink" href="#_ercs.simulate" title="Permalink to this definition">¶</a></dt>
@@ -761,7 +791,7 @@ however, the low-level module is documented here.</p>
 </div>
 </div>
 <div class="section" id="bibliography">
-<h2><a class="toc-backref" href="#id30">Bibliography</a><a class="headerlink" href="#bibliography" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id31">Bibliography</a><a class="headerlink" href="#bibliography" title="Permalink to this headline">¶</a></h2>
 <table class="docutils citation" frame="void" id="e08" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
@@ -803,7 +833,7 @@ Programming</em>, 2011.</td></tr>
 </div>
 </div>
 <div class="section" id="indices-and-tables">
-<h1><a class="toc-backref" href="#id31">Indices and tables</a><a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<h1><a class="toc-backref" href="#id32">Indices and tables</a><a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
 <li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
 <li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
@@ -823,11 +853,12 @@ Programming</em>, 2011.</td></tr>
 <li><a class="reference internal" href="#introduction">Introduction</a></li>
 <li><a class="reference internal" href="#examples">Examples</a><ul>
 <li><a class="reference internal" href="#basic-usage">Basic usage</a></li>
+<li><a class="reference internal" href="#samples">Samples</a></li>
 <li><a class="reference internal" href="#oriented-trees-and-forests">Oriented trees and forests</a></li>
 <li><a class="reference internal" href="#coalescence-times-and-mrcas">Coalescence times and MRCAs</a></li>
-<li><a class="reference internal" href="#multiple-event-classes">Multiple event classes</a></li>
 <li><a class="reference internal" href="#multiple-loci">Multiple loci</a></li>
-<li><a class="reference internal" href="#parallelism">Parallelism</a></li>
+<li><a class="reference internal" href="#draft">DRAFT</a></li>
+<li><a class="reference internal" href="#a-full-example">A full example</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-ercs"><tt class="docutils literal"><span class="pre">ercs</span></tt> &#8211; Module reference</a><ul>
