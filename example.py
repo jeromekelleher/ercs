@@ -43,30 +43,28 @@ def oriented_forest_example(seed):
     pi, tau = sim.run(seed)
     return pi[0]
 
-def mrca_example(seed):
+def mrca_example(seed, n):
     sim = ercs.Simulator(20)
-    sim.sample = [None] + [(j, j) for j in range(1, 5)]
+    sim.sample = [None] + [(j, j) for j in range(n)]
     sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
     pi, tau = sim.run(seed)
     mc = ercs.MRCACalculator(pi[0])
     print("pi  = ", pi)
     print("tau = ", tau)
-    for j in range(1, 5):
-        for k in range(j + 1, 5):
+    for j in range(1, n + 1):
+        for k in range(j + 1, n + 1):
             mrca = mc.get_mrca(j, k)
             t = tau[0][mrca]
-            print("\tmrca({0}, {1}) = {2} @ {3}".format(j, k, mrca, t))
+            print("\tmrca({0}, {1}) = {2} @ {3:.2f}".format(j, k, mrca, t))
 
-
-def two_locus_example(seed, mu):
+def two_locus_example(seed):
+    mu = 1e-7
     sim = ercs.Simulator(40)
     sim.sample = [None] + [(10, 10), (20, 10)]
     sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
     sim.recombination_probabilities = [0.1]
     pi, tau = sim.run(seed)
-    t1 = tau[0][ercs.MRCACalculator(pi[0]).get_mrca(1, 2)]
-    t2 = tau[1][ercs.MRCACalculator(pi[1]).get_mrca(1, 2)]
-    return math.exp(-2 * mu * t1) * math.exp(-2 * mu * t2)
+    return math.exp(-2 * mu * tau[0][3]) * math.exp(-2 * mu * tau[1][3])
 
 def out_of_memory_example():
     sim = ercs.Simulator(40)
@@ -99,8 +97,8 @@ def main():
     #nca_example()
     #print(first_example(3))
     #print(oriented_forest_example(5))
-    mrca_example(16)
-    #print(two_locus_example(30, 1e-7))
+    #mrca_example(10292, 4)
+    print(two_locus_example(30))
     #
     #out_of_memory_example()
 
