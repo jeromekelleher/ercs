@@ -9,7 +9,9 @@ import random
 import pickle
 import numpy as np
 import multiprocessing
-import pylab
+
+from matplotlib import ticker 
+from matplotlib import pyplot
 
 #################################
 
@@ -139,6 +141,8 @@ def full_example():
     with open("simulator.dat", "wb") as f:
         pickle.dump(sim, f)
     
+def label_form(x, pos): 
+    return str(float(x))
 
 def plot():
     small = np.fromfile("small.dat") 
@@ -147,14 +151,16 @@ def plot():
     with open("simulator.dat", "rb") as f:
         sim = pickle.load(f)
     x = np.array(sim.get_distances())
-
-    pylab.plot(x, small, label="small")
-    pylab.plot(x, mixed, label="mixed")
-    pylab.plot(x, large, label="large")
-    pylab.legend(loc="upper right")
-    pylab.savefig("tmp.png", dpi=72)
-
-
+    pyplot.plot(x, small, label="small")
+    pyplot.plot(x, mixed, label="mixed")
+    pyplot.plot(x, large, label="large")
+    pyplot.yscale('log')
+    pyplot.ylim(min(large), max(small))
+    pyplot.gca().yaxis.set_minor_formatter(ticker.ScalarFormatter())
+    pyplot.xlabel("x")
+    pyplot.ylabel("F(x)")
+    pyplot.legend(loc="upper right")
+    pyplot.savefig("tmp.png", dpi=72)
     
 
 
