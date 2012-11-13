@@ -353,92 +353,181 @@ efficiently. The
 attributes provide a means of tuning this data structure for 
 performance when very large numbers of lineages are involved.
 
-****************************
-DRAFT 
-****************************
-Everything below this point is in development.
-
 
 ****************************
-A full example
+A complete example
 ****************************
 
-Up to this point we have considered models in which a single class 
-of event occurs at rate 1.0. We can simulate an arbitrary number 
-of event classes happening at different rates, however; we simply
-set the :attr:`ercs.Simulator.event_classes` attribute to a list 
-consisting of :class:`ercs.EventClass` instances with the required rates and 
-properties.
+The examples up to this point have been intended to illustrate the core 
+concepts of using :mod:`ercs`, and have not done anything very useful.
+In this section we work through a complete example of how the module can 
+be used to estimate the probability of identity using many replicates.
+This example is not intended for Python novices, and makes use of the 
+popular `NumPy <http://numpy.scipy.org/>`_ and 
+`matplotlib <http://matplotlib.org/>`_ third party packages.
 
-For example, Figure 2 of [BEV12]_  plots the probability of identity in
-state for three event regimes: one in which we have small events only;
-another in which we have large events only; and finally a regime
-in which we have a mixture of the two. The following example 
-returns the probability of identity for evenly spaced samples in a 
-single replicate::
-    
-    def mixed_events_example(seed):
-        L = 40
-        sim = ercs.Simulator(L)
-        sim.sample = [None] + [(0, j) for j in range(1, 10)]
-        sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
-        pi, tau = sim.run(seed)
-        sv = ercs.MRCACalculator(pi[0])
-        # TODO  Fill me in. 
- 
+To begin with, we import some modules we'll need later, 
+and define a class extending :class:`ercs.Simulator`::
 
-
-The most common use of coalescent simulation is to estimate the distribution 
-of some quantity by aggregating over many different replicates. This is 
-done in ``ercs`` by running the ``run`` method with different random 
-seeds, one for each replicate. Since each replicate is then completely 
-independent, we can easily parallelise the process. One possible way 
-to this is using the :mod:`multiprocessing` module::
-    
     import ercs
-    import multiprocessing
-
-    def parallel_run(seed):
-        sim = ercs.Simulator(50)
-        sim.sample = [(1, 1), (2, 2)]
-        sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
-        pi, tau = sim.run(seed) 
-        coal_time = tau[0][3]
-        return coal_time 
-
-    def parallel_example(num_replicates):
-        pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())       
-        coal_times = pool.map(parallel_run, range(1, num_replicates + 1)) 
-        return sum(coal_times) / num_replicates
-
-In this example we are working on a torus of diameter 100, so the simulations 
-require a lot longer to run. On most modern systems we have many CPU cores, 
-and so we use the multiprocessing module to distribute the work of many
-replicates across these cores.
-
->>> parallel_example(100)
-2968953.9276501946
-
-This is the mean coalescence time among 100 replicates. The multiprocessing 
-module runs ``parallel_run`` function for each of the seeds in 
-a subprocess and collects the coalescence times into the list 
-``coal_times``. We then take the mean of this list and return it.
-The random seeds are simply the integers from 1 to 100. This is a perfectly
-legitimate way to choose seeds for a single example, since the random 
-sequences for adjacent seeds are not correlated. If, however, we are 
-are doing lots of simulations with different parameter values or are
-distributing our simulations over several machines, it would be better 
-to spread our choice of seeds out more evenly across the possible space.
-One way to do this is::
-    
+    import sys
+    import math
     import random
-    seeds = [random.randint(1, 2**31 - 1) for j in range(100)]
+    import pickle
+    import numpy as np
+    import multiprocessing
+    from matplotlib import ticker 
+    from matplotlib import pyplot
 
-There is no issue with using the Python random generator within your
-code, as the ``ercs`` C library generates random numbers independently 
-of Python (using the ``mt19937`` random number generator from the 
-`GNU Scientific Library 
-<http://www.gnu.org/software/gsl/manual/html_node/Random-number-generator-algorithms.html>`_).
+    class SingleLocusIdentitySimulator(ercs.Simulator):
+        """
+        Class that calculates identity in state for genes separated by a range 
+        of distances.
+        """
+        def setup(self, num_points, max_distance, mutation_rate): 
+            """
+            Sets up the simulation so that we calculate identity at the specified 
+            number of points, the maximum distance between points is 
+            max_distance and  mutation happends at the specified rate.
+            """
+            self.mutation_rate = mutation_rate
+            self.distances = np.linspace(0, max_distance, num_points)
+            self.sample = [None, (0, 0)] + [(0, x) for x in self.distances] 
+        
+        def set_max_time(self, accuracy_goal, num_replicates):
+            """
+            Sets the maximum amount of time to run the simulation based on having
+            the absolute specified accuracy goal over the specified number of 
+            replicates.
+            """
+            t = math.log(num_replicates * accuracy_goal) / (-2 * self.mutation_rate)
+            self.max_time = t 
+
+        def get_identity(self, seed):
+            """
+            Returns the probability of identity at all distance classes 
+            in this replicate.
+            """
+            pi, tau = self.run(seed)
+            mc = ercs.MRCACalculator(pi[0])
+            n = len(self.distances)
+            F = [0.0 for j in range(n)] 
+            for j in range(n):
+                mrca = mc.get_mrca(1, j + 2)
+                if mrca != 0:
+                    F[j] = math.exp(-2 * self.mutation_rate * tau[0][mrca]) 
+            return F
+
+
+
+This class is responsible for setting up a sample of individuals on the torus
+such that we can calculate the probability of identity in state at a sequence 
+of evenly spaced separation distances.
+After creating an instance of ``SingleLocusIdentitySimulator`` we call the ``setup`` method
+to create our sample, with the required properties. For example, we might proceed as follows:
+
+>>> sim = SingleLocusIdentitySimulator(100)
+>>> sim.setup(4, 20, 1e-6)
+>>> sim.sample
+[None, (0, 0), (0, 0.0), (0, 6.666666666666667), (0, 13.333333333333334), (0, 20.0)]
+
+Here we allocate a simulation on a torus of diameter 100, and then call ``setup`` to 
+arrange our sample for us. In this case, we want four evenly spaced distances 
+from 0 to 20. We also state that our mutation rate is 10\ :sup:`-6`, which we store
+in this class for convenience.
+
+The ``get_identity`` method calculates the probability of identity at each of these 
+distance classes for a given seed. This is done by running the simulation in the usual 
+way to get the history of the sample. We then calculate the MRCA of node ``1`` and each 
+other node, giving us the coalescence times for each distance class, from which 
+the probability of identity is calculated in the usual way.
+
+The ``set_max_time`` method provides a valuable means of reducing the amount 
+of time calculating identity under this approach. [Explain set_max_time]
+
+Returning to the example, we define a top-level function to manage running 
+the simulations and storing the results::
+    
+    def run_simulations(num_replicates):
+        sim = SingleLocusIdentitySimulator(100)
+        sim.setup(50, 20, 1e-6)
+        sim.set_max_time(1e-8, num_replicates)
+        small_events = ercs.DiscEventClass(rate=1.0, r=1, u=0.5)
+        large_events = ercs.DiscEventClass(rate=0.1, r=10, u=0.05)
+        pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())       
+        sim.event_classes = [small_events]
+        run_replicates(sim, "small.dat", num_replicates, pool)
+        sim.event_classes = [large_events]
+        run_replicates(sim, "large.dat", num_replicates, pool)
+        sim.event_classes = [small_events, large_events]
+        run_replicates(sim, "mixed.dat", num_replicates, pool)
+        with open("simulator.dat", "wb") as f:
+            pickle.dump(sim, f)
+
+
+We start by allocating a simulator on a torus of diameter ``100``, and then 
+setup our sample so that we fifty equally spaced distances from ``0`` 
+to ``20``. We then set the :attr:`ercs.Simulator.max_time`` attribute
+to reflect our accuracy goal of 10\ :sup:`-6`, and then allocate the 
+event classes that we are interested in simulating. Here we have two 
+different types of event: small frequent events, with a large impact 
+and large rare events with a small impact. We wish to see how the 
+probability of identity in state is affected when we have these two 
+event classes on their own, and also when they are mixed.
+These simulations are run in the ``run_replicates`` function, which also 
+saves the results into a file. Finally, we save the state of the 
+simulator object to a file also, so that we can recover the exact
+values of all its properties later.
+
+Estimating the probability of identity in state to any degree of accuracy
+requires a large number of replicates. These replicates are independent, 
+so are easily run in paralell. We use the :mod:`multiprocessing` module to
+make this task straightforward::
+
+    def subprocess_runner(t):
+        sim, seed = t
+        return sim.get_identity(seed)
+
+    def run_replicates(sim, filename, num_replicates, pool):
+        args = [(sim, random.randint(0, sys.maxsize)) for j in range(num_replicates)]
+        replicates = np.array(pool.map(subprocess_runner, args))
+        mean_identity = np.mean(replicates, axis=0)
+        mean_identity.tofile(filename)
+
+.. note:: There is no issue with using the Python random generator within your
+    code, as the ``ercs`` C library generates random numbers independently 
+    of Python (using the ``mt19937`` random number generator from the 
+    `GNU Scientific Library 
+    <http://www.gnu.org/software/gsl/manual/html_node/Random-number-generator-algorithms.html>`_).
+
+
+Finally, once the ``run_simulations`` function has completed, we can then plot
+the results using `matplotlib <http://matplotlib.org/>`_::
+
+    def generate_plot():
+        small = np.fromfile("small.dat") 
+        mixed = np.fromfile("mixed.dat") 
+        large = np.fromfile("large.dat") 
+        with open("simulator.dat", "rb") as f:
+            sim = pickle.load(f)
+        x = sim.distances 
+        pyplot.plot(x, small, label="small")
+        pyplot.plot(x, mixed, label="mixed")
+        pyplot.plot(x, large, label="large")
+        pyplot.yscale('log')
+        pyplot.ylim(min(large), max(small))
+        pyplot.gca().yaxis.set_minor_formatter(ticker.ScalarFormatter())
+        pyplot.xlabel("x")
+        pyplot.ylabel("F(x)")
+        pyplot.legend(loc="upper right")
+        pyplot.savefig("identity.png", dpi=72)
+
+Using this code over 100000 replicates, we get the following plot:
+
+.. image::  ../images/identity.png
+   :align: center 
+   :alt: Probability of identity in state. 
+   :width: 15cm
 
 
 -----------------------------------

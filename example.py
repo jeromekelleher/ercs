@@ -10,6 +10,10 @@ import pickle
 import numpy as np
 import multiprocessing
 
+# TEMP: for use on non-X server machine.
+import matplotlib
+matplotlib.use('Agg')
+
 from matplotlib import ticker 
 from matplotlib import pyplot
 
@@ -65,20 +69,18 @@ def out_of_memory_example():
 
 class SingleLocusIdentitySimulator(ercs.Simulator):
     """
-    Class that calculates identity in state for genes seperated by a range 
+    Class that calculates identity in state for genes separated by a range 
     of distances.
     """
-    def setup(self, spacing, max_distance, mutation_rate):
+    def setup(self, num_points, max_distance, mutation_rate): 
         """
-        Sets up the simulation so that individuals in the sample 
-        are seperated by the specified spacing, the maximum 
-        distance between two locations is max_distance and the
-        mutation rate is set to the specified value.
+        Sets up the simulation so that we calculate identity at the specified 
+        number of points, the maximum distance between points is 
+        max_distance and mutation happens at the specified rate.
         """
         self.mutation_rate = mutation_rate
-        self.num_distances = int(max_distance / spacing)
-        s = [(0, j * spacing) for j in range(self.num_distances)]
-        self.sample = [None, (0, 0)] + s 
+        self.distances = np.linspace(0, max_distance, num_points)
+        self.sample = [None, (0, 0)] + [(0, x) for x in self.distances] 
     
     def set_max_time(self, accuracy_goal, num_replicates):
         """
@@ -89,12 +91,6 @@ class SingleLocusIdentitySimulator(ercs.Simulator):
         t = math.log(num_replicates * accuracy_goal) / (-2 * self.mutation_rate)
         self.max_time = t 
 
-    def get_distances(self):
-        """
-        Returns the list of distances between sample[1] and all other elements.
-        """
-        return [self.sample[j + 2][1] for j in range(self.num_distances)]
-
     def get_identity(self, seed):
         """
         Returns the probability of identity at all distance classes 
@@ -102,8 +98,9 @@ class SingleLocusIdentitySimulator(ercs.Simulator):
         """
         pi, tau = self.run(seed)
         mc = ercs.MRCACalculator(pi[0])
-        F = [0.0 for j in range(self.num_distances)]
-        for j in range(self.num_distances):
+        n = len(self.distances)
+        F = [0.0 for j in range(n)] 
+        for j in range(n):
             mrca = mc.get_mrca(1, j + 2)
             if mrca != 0:
                 F[j] = math.exp(-2 * self.mutation_rate * tau[0][mrca]) 
@@ -119,11 +116,12 @@ def run_replicates(sim, filename, num_replicates, pool):
     replicates = np.array(pool.map(subprocess_runner, args))
     mean_identity = np.mean(replicates, axis=0)
     mean_identity.tofile(filename)
+    print(mean_identity)
 
 def run_simulations(num_replicates):
     sim = SingleLocusIdentitySimulator(100)
-    sim.setup(0.25, 20, 1e-6)
-    sim.set_max_time(1e-6, num_replicates)
+    sim.setup(50, 20, 1e-6)
+    sim.set_max_time(1e-8, num_replicates)
     small_events = ercs.DiscEventClass(rate=1.0, r=1, u=0.5)
     large_events = ercs.DiscEventClass(rate=0.1, r=10, u=0.05)
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())       
@@ -136,13 +134,14 @@ def run_simulations(num_replicates):
     with open("simulator.dat", "wb") as f:
         pickle.dump(sim, f)
 
+
 def generate_plot():
     small = np.fromfile("small.dat") 
     mixed = np.fromfile("mixed.dat") 
     large = np.fromfile("large.dat") 
     with open("simulator.dat", "rb") as f:
         sim = pickle.load(f)
-    x = np.array(sim.get_distances())
+    x = sim.distances 
     pyplot.plot(x, small, label="small")
     pyplot.plot(x, mixed, label="mixed")
     pyplot.plot(x, large, label="large")
