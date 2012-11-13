@@ -160,7 +160,7 @@ def plot():
     pyplot.xlabel("x")
     pyplot.ylabel("F(x)")
     pyplot.legend(loc="upper right")
-    pyplot.savefig("tmp.png", dpi=72)
+    pyplot.savefig("identity.png", dpi=72)
     
 
 
