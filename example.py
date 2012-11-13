@@ -9,27 +9,9 @@ import random
 import pickle
 import numpy as np
 import multiprocessing
+import pylab
 
-
-def parallel_run(seed):
-    sim = ercs.Simulator(100)
-    sim.sample =  [(1, 1), (2, 2)]
-    sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
-    pi, tau = sim.run(seed) 
-    coal_time = tau[0][3]
-    return coal_time 
-
-def multiprocessing_example():
-    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())       
-    num_replicates = 100
-    
-    
-    seeds = [random.randint(0, sys.maxsize) for j in range(num_replicates)]
-    coal_times = pool.map(parallel_run, seeds) 
-    
-    
-    print("Mean coalescence time =", sum(coal_times) / num_replicates)
-
+#################################
 
 def first_example(seed):
     sim = ercs.Simulator(20)
@@ -77,71 +59,63 @@ def out_of_memory_example():
     pi, tau = sim.run(1)
 
 
-def tmp():
-    sim = ercs.Simulator(10)
-    sim.sample =  [(1, 1), (2, 2), (3, 3)]
-    sim.recombination_probabilities = [0.1 for j in range(5)]
-    sim.event_classes = [ercs.DiscEventClass(rate=1.0, u=0.5, r=1), 
-        ercs.GaussianEventClass(rate=0.1, theta=1.5, alpha=0.6, u0=0.75)]
-    sim.max_lineages = 4
+#################################
 
-    for i in range(5):
-        pi, tau = sim.run(i)
-        print(pi, tau)
-    
 class SingleLocusIdentitySimulator(ercs.Simulator):
     """
     Class that extends the simulator class and calculates identity 
     in state at a set of distance classes for a replicates.
     """
-    def get_identity(self, seed):
+    def setup(self, mutation_rate, spacing, max_distance):
         """
-        Returns the probability of identity between all sample[0] 
-        and sample[1], sample[0] and sample[2], ..., 
-        sample[0] and sample[n].
+        Sets up the simulation so that we have a mutation rate mu, a
+        distance of spacing between samples and the maximum distance 
+        between samples is max_distance.
         """
-        pi, tau = self.run(seed)
-        mc = ercs.MRCACalculator(pi[0])
-        F = [0.0 for x in self.sample]
-        for j in range(2, len(self.sample)):
-            mrca = mc.get_mrca(1, j)
-            F[j] = 0 if mrca == 0 else math.exp(-2 * self.mu * tau[0][mrca]) 
-        return F
-
+        self.mutation_rate = mutation_rate
+        self.num_distances = int(max_distance / spacing)
+        s = [(0, j * spacing) for j in range(self.num_distances)]
+        self.sample = [None, (0, 0)] + s 
+    
     def set_max_time(self, accuracy_goal, num_replicates):
         """
         Sets the maximum amount of time to run the simulation based on having
         the absolute specified accuracy goal over the specified number of 
         replicates.
         """
-        t = math.log(num_replicates * accuracy_goal) / (-2 * self.mu)
+        t = math.log(num_replicates * accuracy_goal) / (-2 * self.mutation_rate)
         self.max_time = t 
 
     def get_distances(self):
         """
         Returns the list of distances between sample[1] and all other elements.
         """
-        x = self.sample[1]
-        d = [ercs.torus_distance(x, y, self.torus_diameter) for y in self.sample[1:]]
-        return [-1] + d 
+        return [self.sample[j + 2][1] for j in range(self.num_distances)]
+
+    def get_identity(self, seed):
+        """
+        Returns the probability of identity at all distance classes 
+        in this replicate.
+        """
+        pi, tau = self.run(seed)
+        mc = ercs.MRCACalculator(pi[0])
+        F = [0.0 for j in range(self.num_distances)]
+        for j in range(self.num_distances):
+            mrca = mc.get_mrca(1, j + 2)
+            if mrca != 0:
+                F[j] = math.exp(-2 * self.mutation_rate * tau[0][mrca]) 
+        return F
+
 
 def subprocess_runner(t):
     sim, seed = t
     return sim.get_identity(seed)
 
-def get_mean(replicates):
-    """
-    Returns the columnwise mean of the specified matrix.
-    """
-    a = np.array(replicates) 
-    return np.mean(a, axis=0)
-
 def run_replicates(sim, filename, num_replicates, pool):
     args = [(sim, random.randint(0, sys.maxsize)) for j in range(num_replicates)]
-    mean_identity = get_mean(pool.map(subprocess_runner, args))
-    small_result = zip(sim.get_distances(), mean_identity)[2:]
-    with open(filename, "wb") as f:
-        pickle.dump(small_result, f)
+    replicates = np.array(pool.map(subprocess_runner, args))
+    mean_identity = np.mean(replicates, axis=0)
+    mean_identity.tofile(filename)
     print("wrote ", filename)
 
 def full_example():
@@ -149,16 +123,12 @@ def full_example():
     A full example of using ercs to see the effect of mixed events 
     on the probability of identity in state against distance.
     """
-    num_distances = 100
-    num_replicates = 1000
+    num_replicates = 100000 
     small_events = ercs.DiscEventClass(rate=1.0, r=1, u=0.5)
     large_events = ercs.DiscEventClass(rate=0.1, r=10, u=0.05)
     sim = SingleLocusIdentitySimulator(100)
-    sim.mu = 1e-6
-    sim.set_max_time(1e-10, num_replicates)
-    s = [(0, j * 20.0 / num_distances) for j in range(num_distances)]
-    sim.sample = [None] + s 
-    # Setup our worker pool and do some work 
+    sim.setup(1e-6, 0.25, 20)
+    sim.set_max_time(1e-6, num_replicates)
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())       
     sim.event_classes = [small_events]
     run_replicates(sim, "small.dat", num_replicates, pool)
@@ -166,6 +136,26 @@ def full_example():
     run_replicates(sim, "large.dat", num_replicates, pool)
     sim.event_classes = [small_events, large_events]
     run_replicates(sim, "mixed.dat", num_replicates, pool)
+    with open("simulator.dat", "wb") as f:
+        pickle.dump(sim, f)
+    
+
+def plot():
+    small = np.fromfile("small.dat") 
+    mixed = np.fromfile("mixed.dat") 
+    large = np.fromfile("large.dat") 
+    with open("simulator.dat", "rb") as f:
+        sim = pickle.load(f)
+    x = np.array(sim.get_distances())
+
+    pylab.plot(x, small, label="small")
+    pylab.plot(x, mixed, label="mixed")
+    pylab.plot(x, large, label="large")
+    pylab.legend(loc="upper right")
+    pylab.savefig("tmp.png", dpi=72)
+
+
+    
 
 
 def main():
@@ -178,6 +168,8 @@ def main():
     #print(two_locus_example(30))
     #
     #out_of_memory_example()
-    full_example()
+    #full_example()
+    plot()
+
 if __name__ == "__main__":
     main()
