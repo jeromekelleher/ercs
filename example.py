@@ -65,14 +65,15 @@ def out_of_memory_example():
 
 class SingleLocusIdentitySimulator(ercs.Simulator):
     """
-    Class that extends the simulator class and calculates identity 
-    in state at a set of distance classes for a replicates.
+    Class that calculates identity in state for genes seperated by a range 
+    of distances.
     """
-    def setup(self, mutation_rate, spacing, max_distance):
+    def setup(self, spacing, max_distance, mutation_rate):
         """
-        Sets up the simulation so that we have a mutation rate mu, a
-        distance of spacing between samples and the maximum distance 
-        between samples is max_distance.
+        Sets up the simulation so that individuals in the sample 
+        are seperated by the specified spacing, the maximum 
+        distance between two locations is max_distance and the
+        mutation rate is set to the specified value.
         """
         self.mutation_rate = mutation_rate
         self.num_distances = int(max_distance / spacing)
@@ -118,19 +119,13 @@ def run_replicates(sim, filename, num_replicates, pool):
     replicates = np.array(pool.map(subprocess_runner, args))
     mean_identity = np.mean(replicates, axis=0)
     mean_identity.tofile(filename)
-    print("wrote ", filename)
 
-def full_example():
-    """
-    A full example of using ercs to see the effect of mixed events 
-    on the probability of identity in state against distance.
-    """
-    num_replicates = 100000 
+def run_simulations(num_replicates):
+    sim = SingleLocusIdentitySimulator(100)
+    sim.setup(0.25, 20, 1e-6)
+    sim.set_max_time(1e-6, num_replicates)
     small_events = ercs.DiscEventClass(rate=1.0, r=1, u=0.5)
     large_events = ercs.DiscEventClass(rate=0.1, r=10, u=0.05)
-    sim = SingleLocusIdentitySimulator(100)
-    sim.setup(1e-6, 0.25, 20)
-    sim.set_max_time(1e-6, num_replicates)
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())       
     sim.event_classes = [small_events]
     run_replicates(sim, "small.dat", num_replicates, pool)
@@ -140,11 +135,8 @@ def full_example():
     run_replicates(sim, "mixed.dat", num_replicates, pool)
     with open("simulator.dat", "wb") as f:
         pickle.dump(sim, f)
-    
-def label_form(x, pos): 
-    return str(float(x))
 
-def plot():
+def generate_plot():
     small = np.fromfile("small.dat") 
     mixed = np.fromfile("mixed.dat") 
     large = np.fromfile("large.dat") 
@@ -161,7 +153,6 @@ def plot():
     pyplot.ylabel("F(x)")
     pyplot.legend(loc="upper right")
     pyplot.savefig("identity.png", dpi=72)
-    
 
 
 def main():
@@ -174,8 +165,8 @@ def main():
     #print(two_locus_example(30))
     #
     #out_of_memory_example()
-    #full_example()
-    plot()
+    run_simulations(10)
+    generate_plot()
 
 if __name__ == "__main__":
     main()
