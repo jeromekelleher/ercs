@@ -30,31 +30,7 @@
 #define GAUSSIAN_EVENT_CLASS 1
 
 #define MODULE_DOC \
-"Low Level Event Classes\n"\
-"+++++++++++++++++++++++\n"\
-" In the ``_ercs`` module, event classes are specified by dictionaries "\
-" of key-value pairs "\
-" describing the rate events of a particular class happen, the type of event "\
-" and the parameters unique to each event class. Each dictionary must have"\
-" two fields: ``rate`` and ``type``. The ``rate`` field specifies the rate"\
-" that this class of events happens at and is a float. The ``type`` field "\
-" specifies the type of events. The supported event classes are:\n\n"\
-"Disc Events\n"\
-"   Events from the disc model have ``type`` equal to DISC_EVENT_CLASS and "\
-"   two further fields: ``r`` is a double value specifying the radius of "\
-"   the event and ``u`` is a double value specifying the impact of the event."\
-"   Example: `{\"type\":DISC_EVENT_CLASS, \"rate\":1.0, \"r\":2.0, "\
-"   \"u\":0.5}` \n\n"\
-"Gaussian Events\n"\
-"   Events from the Gaussian model have ``type`` equal to GAUSSIAN_EVENT_CLASS "\
-"   and three further fields: ``theta`` specifies the size of the event, "\
-"   ``alpha`` the relative location of parents and ``u0`` the impact. "\
-"   Example: `{\"type\":GAUSSIAN_EVENT_CLASS, \"rate\":1.0, \"theta\":2.0, "\
-"   \"u0\":0.5, \"alpha\":0.75}` \n\n"\
-
-
-
-
+"Simple Python interface to the ``ercs`` C library. Supports Python 2 and 3."
 
 static PyObject *ErcsInputError;
 static PyObject *ErcsLibraryError;
@@ -240,26 +216,22 @@ out:
 "   :type torus_diameter: double\n"\
 "   :param num_parents: The number of parents in each event\n"\
 "   :type num_parents: unsigned integer\n"\
-"   :param sample: The sample of 2D locations\n"\
+"   :param sample: The (zero indexed) sample of 2D locations\n"\
 "   :type sample: list of numeric (x, y) tuples\n"\
 "   :param event_classes: The list of event classes and their rates\n"\
-"   :type event_classes: list of dictionaries; see "\
-"       `Low Level Event Classes`_\n"\
+"   :type event_classes: list of dictionaries\n"\
 "   :param recombination_probabilities: probability of recombination between"\
-"       adjacent loci\n"\
+" adjacent loci\n"\
 "   :type recombination_probabilities: list of doubles\n"\
 "   :param kdtree_bucket_size: The number of points in a kdtree bucket\n"\
 "   :type kdtree_bucket_size: unsigned integer\n"\
 "   :param max_kdtree_insertions: The maximum number of insertions before "\
-"       the kdtree is rebuilt. If this parameter is 0 then the kdtree will "\
-"       not be rebuilt\n"\
+" the kdtree is rebuilt; if 0, the kdtree is never rebuilt\n"\
 "   :type max_kdtree_insertions: unsigned integer\n"\
-"   :param max_lineages: The maximum number of extant lineages. "\
-"       If the simulation exceeds this limit a LibraryError is raised.\n"\
+"   :param max_lineages: The maximum number of extant lineages\n"\
 "   :type max_lineages: unsigned integer\n"\
-"   :param max_time: the maximum time we simulate back into the past. If this "\
-"       parameter is 0.0 the simulation will continue until all loci have "\
-"       coalesced.\n"\
+"   :param max_time: the maximum time we simulate back into the past;"\
+" if 0.0, simulate until coalescence\n"\
 "   :type max_time: double\n"\
 "   :param ancestry_algorithm: currently unused\n"\
 "   :type ancestry_algorithm: unsigned int\n"\
@@ -317,7 +289,7 @@ pyercs_simulate(PyObject *self, PyObject *args)
     not_done = 1; 
     while (not_done) {
         ercs_ret = ercs_simulate(sim, 1<<20);
-        ERCS_ERROR_CHECK(ercs_ret, out);
+        ERCS_ERROR_CHECK(ercs_ret, cleanup);
         not_done = ercs_ret == ERCS_SIM_NOT_DONE;
         if (PyErr_CheckSignals() < 0) {
             goto out;
