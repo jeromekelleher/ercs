@@ -20,8 +20,11 @@
 Simulate the coalescent in the extinction recolonisation model under a 
 flexible set of parameters.
 """
-import math
 
+# Must be single quotes for parsing in setup.py
+__version__ = '1.0.1a1'
+
+import math
 import _ercs
 
 def torus_distance(x, y, L):

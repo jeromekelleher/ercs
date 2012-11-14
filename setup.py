@@ -1,8 +1,26 @@
+import re
 from distutils.core import setup, Extension
 
 f = open("README.rst")
 ercs_readme = f.read()
 f.close()
+
+# Following the recommendations of PEP 396 we parse the version number 
+# out of the module.
+def parse_version(module_file):
+    """
+    Parses the version string from the specified file.
+    
+    This implementation is ugly, but there doesn't seem to be a good way
+    to do this in general at the moment.
+    """ 
+    f = open(module_file)
+    s = f.read()
+    f.close()
+    match = re.findall("__version__ = '([^']+)'", s)
+    return match[0]
+
+ercs_version = parse_version("ercs.py") 
 
 d = "lib/"
 _ercs_module = Extension('_ercs', 
@@ -13,7 +31,7 @@ _ercs_module = Extension('_ercs',
 
 setup(
     name = "ercs",
-    version = "1.0.9-dev",
+    version = ercs_version, 
     description = "Coalescent simulations in continuous space",
     author = "Jerome Kelleher",
     author_email = "jerome.kelleher@ed.ac.uk",
