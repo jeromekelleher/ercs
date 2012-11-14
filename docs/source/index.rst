@@ -358,18 +358,19 @@ Estimating identity
 ----------------------
 
 The examples up to this point have been intended to illustrate the core 
-concepts of using :mod:`ercs`, and have not done anything very useful.
-In this section we work through a complete example of how the module can 
-be used to estimate the probability of identity using many replicates.
-This example is not intended for Python novices, and makes use of the 
+concepts of using :mod:`ercs`, and have not done anything particularly 
+useful.  In this section we work through a complete example of how the module can 
+be used to estimate the probability of identity in state.
+The example is necessarily more complex that the toy examples above, but 
+should provide a useful template for further simulations.
+To keep the code as concise as possible we use the 
 popular `NumPy <http://numpy.scipy.org/>`_ and 
 `matplotlib <http://matplotlib.org/>`_ third party packages.
 
-To begin with, we import some modules we'll need later, 
+To begin with, we import some modules we'll need later 
 and define a class extending :class:`ercs.Simulator`::
 
     import ercs
-    import sys
     import math
     import random
     import pickle
@@ -387,7 +388,7 @@ and define a class extending :class:`ercs.Simulator`::
             """
             Sets up the simulation so that we calculate identity at the specified 
             number of points, the maximum distance between points is 
-            max_distance and  mutation happends at the specified rate.
+            max_distance and mutation happens at the specified rate.
             """
             self.mutation_rate = mutation_rate
             self.distances = np.linspace(0, max_distance, num_points)
@@ -450,7 +451,7 @@ the simulations and storing the results::
     def run_simulations(num_replicates):
         sim = SingleLocusIdentitySimulator(100)
         sim.setup(50, 20, 1e-6)
-        sim.set_max_time(1e-8, num_replicates)
+        sim.set_max_time(1e-5, num_replicates)
         small_events = ercs.DiscEventClass(rate=1.0, r=1, u=0.5)
         large_events = ercs.DiscEventClass(rate=0.1, r=10, u=0.05)
         pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())       
@@ -466,32 +467,47 @@ the simulations and storing the results::
 
 We start by allocating a simulator on a torus of diameter ``100``, and then 
 setup our sample so that we fifty equally spaced distances from ``0`` 
-to ``20``. We then set the :attr:`ercs.Simulator.max_time`` attribute
-to reflect our accuracy goal of 10\ :sup:`-6`, and then allocate the 
+to ``20``. We then set the :attr:`ercs.Simulator.max_time` attribute
+to reflect our accuracy goal of 10\ :sup:`-5`, and then allocate the 
 event classes that we are interested in simulating. Here we have two 
 different types of event: small frequent events, with a large impact 
 and large rare events with a small impact. We wish to see how the 
 probability of identity in state is affected when we have these two 
 event classes on their own, and also when they are mixed.
-These simulations are run in the ``run_replicates`` function, which also 
+These simulations are run by the ``run_replicates`` function, which also 
 saves the results into a file. Finally, we save the state of the 
 simulator object to a file also, so that we can recover the exact
 values of all its properties later.
 
+
 Estimating the probability of identity in state to any degree of accuracy
-requires a large number of replicates. These replicates are independent, 
-so are easily run in paralell. We use the :mod:`multiprocessing` module to
-make this task straightforward::
+requires a large number of replicates. Since replicates are independent, 
+we can run them in parallel, and we use the :mod:`multiprocessing` module to
+make this straightforward. In our top-level function, we allocate an instance 
+of :class:`multiprocessing.Pool`, which allows us to distribute jobs to a
+number of processes in a worker pool. Since we'd like to get things done 
+as quickly as possible, we tell the pool to allocate a worker process 
+for each CPU.
+
+::
 
     def subprocess_runner(t):
         sim, seed = t
         return sim.get_identity(seed)
 
     def run_replicates(sim, filename, num_replicates, pool):
-        args = [(sim, random.randint(0, sys.maxsize)) for j in range(num_replicates)]
+        args = [(sim, random.randint(1, 2**31)) for j in range(num_replicates)]
         replicates = np.array(pool.map(subprocess_runner, args))
         mean_identity = np.mean(replicates, axis=0)
         mean_identity.tofile(filename)
+
+
+Replicates of the simulation are performed by running the simulation 
+on different random seeds.
+
+
+
+
 
 .. note:: There is no issue with using the Python random generator within your
     code, as the ``ercs`` C library generates random numbers independently 

@@ -200,6 +200,6 @@ latex_documents = [
 #latex_use_modindex = True
 
 # Tell intersphinx what to map against
-# We need to use this if buildind on Debian squeeze as we have sphinx 0.6.6
-# and newer versions of Python have an unrecognised mapping format.
-intersphinx_mapping = {'http://docs.python.org/2.6': None}
+intersphinx_mapping = {'python': ('http://docs.python.org/3.2', None)} 
+
+
