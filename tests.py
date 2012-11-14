@@ -307,7 +307,7 @@ class TestMRCACalculator(unittest.TestCase):
         """
         L = 20
         sim = ercs.Simulator(L)
-        sim.sample =  [(j, k) for j in range(L) for k in range(L)]
+        sim.sample = [None] + [(j, k) for j in range(L) for k in range(L)]
         sim.event_classes = [ercs.DiscEventClass(rate=1.0, u=1.0, r=1)]
         pi, tau = sim.run(1)
         sv = ercs.MRCACalculator(pi[0])

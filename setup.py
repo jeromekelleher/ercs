@@ -1,7 +1,7 @@
 import re
 from distutils.core import setup, Extension
 
-f = open("README.rst")
+f = open("README.txt")
 ercs_readme = f.read()
 f.close()
 
@@ -35,9 +35,11 @@ setup(
     description = "Coalescent simulations in continuous space",
     author = "Jerome Kelleher",
     author_email = "jerome.kelleher@ed.ac.uk",
-    url = "http://testpypi.python.org/pypi/ercs", 
+    url = "http://pypi.python.org/pypi/ercs", 
     keywords = ["simulation", "coalescent", "continuous space",
         "isolation by distance", "population genetics", "evolution"],
+    license = "GNU GPLv3",
+    platforms = ["POSIX"], 
     classifiers = [
         "Programming Language :: C",
         "Programming Language :: Python",
