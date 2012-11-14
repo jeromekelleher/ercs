@@ -5,7 +5,7 @@ import ercs
 import sys
 import math
 import random
-
+"""
 import pickle
 import numpy as np
 import multiprocessing
@@ -16,7 +16,7 @@ matplotlib.use('Agg')
 
 from matplotlib import ticker 
 from matplotlib import pyplot
-
+"""
 #################################
 
 def first_example(seed):
@@ -60,7 +60,7 @@ def out_of_memory_example():
     sim = ercs.Simulator(40)
     sim.sample = [None] + [(10, 10), (20, 10)]
     sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
-    sim.max_lineage_memory = 1 
+    sim.max_lineages = 10 
     sim.recombination_probabilities = [0.1 for j in range(500)]
     pi, tau = sim.run(1)
 
@@ -163,9 +163,9 @@ def main():
     #mrca_example(10292, 4)
     #print(two_locus_example(30))
     #
-    #out_of_memory_example()
-    run_simulations(10)
-    generate_plot()
+    out_of_memory_example()
+    #run_simulations(10)
+    #generate_plot()
 
 if __name__ == "__main__":
     main()

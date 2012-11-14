@@ -17,8 +17,7 @@
 # along with ercs.  If not, see <http://www.gnu.org/licenses/>.
 # 
 """
-Simulate the coalescent in the extinction recolonisation model under a 
-flexible set of parameters.
+Simulate the coalescent in the extinction recolonisation model. 
 """
 
 # Must be single quotes for parsing in setup.py
@@ -50,11 +49,6 @@ class Simulator(object):
     """
     Class representing a coalescent simulator for the extinction/recolonisation
     model on a torus of the specified diameter. 
-
-    The class provides a convenient interface to the low-level :mod:`_ercs`
-    module, and contains instance variables for each of the simulation 
-    parameters with sensible defaults. These parameters should be set 
-    before calling simulate.
     """
     def __init__(self, torus_diameter):
         self.torus_diameter = torus_diameter

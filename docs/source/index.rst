@@ -1,3 +1,4 @@
+==============================================
 Extinction/recolonisation coalescent simulator
 ==============================================
 
@@ -7,14 +8,11 @@ Extinction/recolonisation coalescent simulator
 .. contents::
 
 
-------------
-Introduction
-------------
 
-The extinction/recolonisation model (or the spatial Lambda-Fleming-Viot process)
+The extinction/recolonisation model (or spatial Lambda-Fleming-Viot process)
 is a recently-introduced model of populations evolving in continuous space.
 In this model, individuals occupy a fixed location and all movement and 
-reproduction occur as a result of extinction/recolonisation *events*. Events 
+reproduction occur as a result of extinction/recolonisation events. Events 
 fall randomly in space, independent of the location of extant individuals.
 In each event, some of the nearby individuals  
 die and are replaced by the descendants of a small
@@ -27,12 +25,14 @@ This is the documentation for the :mod:`ercs` Python module,
 which provides a straightforward interface to coalescent simulations 
 for this model. The basic approach to simulating 
 the history of a sample and interpreting the results is explained through 
-a series of straightforward examples in the `Examples`_  section 
-along with thorough API documentation for the :mod:`ercs` module.
+a series of straightforward examples in the `Introduction`_  section. 
+We then work through a detailed example in the `Estimating identity`_
+section, which is followed by 
+detailed API documentation for the :mod:`ercs` module.
 
------------
-Examples
------------
+------------
+Introduction
+------------
 
 Simulating the coalescent for the extinction/recolonisation model using 
 :mod:`ercs` follows a basic pattern:
@@ -50,6 +50,10 @@ Simulating the coalescent for the extinction/recolonisation model using
 In the following examples we look at the parameters of the simulation, the 
 structure of the simulated genealogies (and how we can analyse them) and 
 how we can use these tools to estimate values of interest.
+
+.. note :: The examples in this section generally assume that Python 3
+    is being used, and may not work under Python 2. However,
+    both Python 2 and Python 3 are **fully supported** by :mod:`ercs`.
 
 **************************
 Basic usage
@@ -72,11 +76,11 @@ simple example::
         return sim.run(seed) 
 
 In this example we allocate a simulator on a torus of diameter 20,  
-set up our sample and event classes, run the simulation
-and the resulting genealogy. The size of the torus is
+and set up our sample and event classes. We then run the simulation
+and return the resulting genealogy. The size of the torus is
 rather arbitrary, as the real size of the habitat that 
 we imagine our population evolving on is determined by the scale 
-of events relative to the size of the torus. Thus, the size of the 
+of events relative to the size of the torus. As a result, the size of the 
 torus can be any value you wish, once the spatial extent of events 
 is scaled appropriately.
 
@@ -94,7 +98,7 @@ rates: see `Event Classes`_ for details.
 
 .. note:: In these examples we'll tend to 
     use rather large events, as it's useful to have examples that 
-    run quickly. These represent highly unrealistic evolutionary scenarios. 
+    run quickly. 
 
 **************************
 Samples
@@ -126,15 +130,13 @@ mapping out explicitly we get:
 {1: (0, 0), 2: (0, 5), 3: (0, 10)}
 
 
-
-
 **************************
 Oriented trees and forests
 **************************
 
 After we have completed setting up the parameters of the simulation
-we can then run the simulation by calling the 
-:meth:`ercs.Simulator.run` method for a given random seed. 
+we can then run it by calling  
+:meth:`ercs.Simulator.run` for a given random seed. 
 Running the example above, we get
 
 >>> first_example(3)
@@ -146,25 +148,28 @@ Running the example above, we get
 This output completely describes the ancestry of the sample, although it's not immediately
 obvious how. In ``ercs`` we use *oriented trees* to represent the genealogy of a sample.
 In an oriented tree, we are only interested in parent-child relationships
-and don't care about the order of children at a node. Therefore, in an oriented tree
-``pi``, the parent of node ``j`` is ``pi[j]``. If we map each node in the tree to a unique 
+and don't care about the order of children at a node. 
+If we map each node in the tree to a unique 
 positive integer and adopt the convention that any node whose parent is the 
 special "null node" ``0`` is a root, 
 we can then represent an oriented tree very simply as a list of integers.
+So, an oriented tree ``pi`` is  a list in which 
+the parent of node ``j`` is ``pi[j]``, the grandparent of ``j`` is ``pi[pi[j]]``
+and so on.
+
 
 The :meth:`ercs.Simulator.run` method returns a tuple, ``(pi, tau)``;
 ``pi`` is a list of oriented forests (one for each locus) and ``tau`` is a list of 
-node times (one for each locus). In the example, we are dealing with a single locus 
-only, so ``pi`` is a list consisting of one list, ``[-1, 4, 4, 5, 5, 0]``, that 
-encodes the following tree:
+node times (one for each locus). In the example, we are dealing with a single locus, 
+so ``pi`` is a list consisting of one list, ``[-1, 4, 4, 5, 5, 0]``.
+This list encodes the following tree, in which 
+the leaf nodes ``1``, ``2`` and ``3`` corresponds to the locations in our sample:
 
 .. image::  ../images/oriented-tree.png
    :align: center 
    :alt: An oriented tree
    :width: 15cm
 
-The leaf nodes ``1``, ``2`` and ``3`` correspond to the locations in our sample
-as discussed above.
 Mapping all nodes in the oriented tree to their parents explicitly, we get:
 
 >>> pi, tau = first_example(3)
@@ -178,8 +183,7 @@ Mapping all nodes in the oriented tree to their parents explicitly, we get:
 The times labelled on the tree are derived from the node times list for this 
 locus, ``tau[0]``. The node times list associated with an oriented tree 
 records the time that the associated lineage entered the sample, looking 
-backwards in time (hence, for each node in the sample the time is ``0.0``).
-
+backwards in time.
 
 Oriented *forests* occur when there is more than one root in a list ``pi``, and 
 so we have a set of disconnected trees. This can happen when we specify
@@ -257,10 +261,11 @@ tau =  [[-1, 0.0, 0.0, 0.0, 0.0, 1495.7013764597423, 51935.87882804881, 231859.8
         mrca(2, 4) = 7 @ 231859.81
         mrca(3, 4) = 6 @ 51935.88
 
-Here we can see, for example, that the MRCA of nodes ``1`` and ``2`` is ``5`` 
-which can be read directly from ``pi``, as it is also their parent. Then, 
-reading the time of node ``5`` from ``tau`` we see that their coalescence 
-time is 1495.70. 
+Here we can see, for example, that the MRCA of nodes ``1`` and ``3`` is ``7`` 
+(since the parent of ``1`` is ``5``, the parent of ``3`` is ``6``
+and ``5`` and ``6`` are both children of ``7``).
+Then, reading the time of node ``7`` from ``tau`` we see that their coalescence 
+time is 231859.81.
 
 ****************************
 Multiple loci
@@ -276,40 +281,34 @@ probabilities to describe the system in a general way.
 The :attr:`ercs.Simulator.recombination_probabilities` attribute is used 
 to describe both the number of loci and the recombination rates between them.
 By default, this attribute is set to the empty list, specifying a single
-locus system. In the following example
-we compute the joint probability of identity in state given a mutation 
-rate ``mu`` at two loci in a single 
-replicate::
+locus system. In the following example we set up a three locus system
+in which we calculate the coalescence time at each locus::
     
-    def two_locus_example(seed):
-        mu = 1e-7
-        sim = ercs.Simulator(40)
-        sim.sample = [None] + [(10, 10), (20, 10)]
+    def multi_locus_example(seed):
+        sim = ercs.Simulator(20)
+        sim.sample = [None] + [(0, 10), (15, 15)]
         sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
-        sim.recombination_probabilities = [0.1]
+        sim.recombination_probabilities = [0.1, 1e-7]
         pi, tau = sim.run(seed)
-        return math.exp(-2 * mu * tau[0][3]) * math.exp(-2 * mu * tau[1][3])
+        return tau[0][3], tau[1][3], tau[2][3]
 
+>>> multi_locus_example(30)
+(256162.39313980262, 190032.351005425, 190032.351005425)
 
-Since our sample is of size two, the MRCA of nodes ``1`` and ``2`` must 
-be ``3``. The probability of identity in state for two genes with coalescence
-time ``t`` and mutation at rate ``mu`` 
-under the infinite sites model is ``exp(-2 * mu * t)``. The joint probability 
-of identity is then the product of the probability of identity at 
-each locus.
-
-Running this example gives us:
-
->>> two_locus_example(30)
-0.06931300943428219
+(There are only two lineages in our sample so
+the MRCA of nodes ``1`` and ``2`` must be be ``3``.) 
+This shows us that there was an effective recombination 
+between the first and second locus at come point in the history 
+of the sample, since the coalescence time at the first locus is not 
+the same as the other two loci.
 
 .. note:: Loci are zero-indexed in the usual Python way, unlike individuals 
     in the sample.
 
-The example above shows how we can simulate two loci, and can be generalised
-to larger numbers of loci in a straightforward way. However, since the number 
-of lineages can grow to be very large when we deal with large numbers of loci,
-it may be necessary to become more familiar with some more advanced properties 
+The example above shows how we can simulate two loci, and can be 
+easily generalised to larger numbers of loci. Since the number 
+of lineages can become very large when we deal with large numbers of loci,
+however, it may be necessary to become familiar with some more advanced properties 
 of the simulation implementation.
 
 The first issue is to decide how much memory you are willing to dedicate 
@@ -331,14 +330,14 @@ illustrated in the following example::
 >>> out_of_memory_example()
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
-  File "example.py", line 77, in out_of_memory_example
-    pi, tau = sim.run(1)
-  File "ercs.py", line 116, in run
-     self.max_time, 0)
+  File "<stdin>", line 7, in out_of_memory_example
+  File "ercs.py", line 118, in run
+    self.max_time, 0)
 _ercs.LibraryError: Out of lineage memory
 
+
 The example fails because we try to simulate the
-ancestry of two 500 locus individuals with a limit of only 10 extant individuals. 
+ancestry of two 500 locus individuals with a limit of only 10 extant lineages. 
 If we wish to simulate the entire history of the sample, we must increase
 the number maximum number of lineages. On the other hand, if we are only 
 interested in the recent history of the sample, we can stop the simulation 
@@ -348,15 +347,15 @@ attribute.
 Lineages are indexed using a kdtree to allow us to find 
 the lineages that may potentially be hit by an event 
 efficiently. The 
-:attr:`ercs.Simulator.kdtree_bucket_size` 
+:attr:`ercs.Simulator.kdtree_bucket_size` and  
 :attr:`ercs.Simulator.max_kdtree_insertions` 
 attributes provide a means of tuning this data structure for 
-performance when very large numbers of lineages are involved.
+performance when large numbers of lineages are involved.
 
 
-****************************
-A complete example
-****************************
+----------------------
+Estimating identity
+----------------------
 
 The examples up to this point have been intended to illustrate the core 
 concepts of using :mod:`ercs`, and have not done anything very useful.
@@ -536,24 +535,6 @@ Using this code over 100000 replicates, we get the following plot:
 
 .. automodule:: ercs
 
-**********************
-Event Classes
-**********************
-
-The classes of event in a given simulation are specified by 
-providing a list of Event Class instances 
-in the :attr:`ercs.Simulator.event_classes` attribute. 
-Two classes of event are currently supported:
-the Disc model and the Gaussian model. See [E08]_, [BEV10]_, [BEV12]_
-and several other articles for details of the Disc model, and see 
-[BKE10]_ and [BEV12]_ for details of the Gaussian model.
-
-.. autoclass:: ercs.EventClass
-
-.. autoclass:: ercs.DiscEventClass
-
-.. autoclass:: ercs.GaussianEventClass
-
 
 ***********************
 :class:`ercs.Simulator`
@@ -582,7 +563,7 @@ and several other articles for details of the Disc model, and see
         The diameter of the torus we are simulating on. This defines the 
         size of the space that lineages can move around in. 
         
-        **Default value:** Specified at substantiation time.
+        **Default value:** Specified at instantiation time.
 
     .. attribute:: num_parents 
 
@@ -622,8 +603,8 @@ and several other articles for details of the Disc model, and see
 
     .. attribute:: kdtree_bucket_size 
 
-       The number of locations in a leaf node of the kdtree; must be a power of 
-       two, greater than 0. The ``kdtree_bucket_size``
+       The number of locations in a leaf node of the kdtree, which  must be a power of 
+       two. The ``kdtree_bucket_size``
        is an advanced parameter that may be useful in tuning performance when very 
        large numbers of lineages are involved. Larger values will result in less 
        time and memory spent indexing the lineages, but more lineages will need to
@@ -652,6 +633,26 @@ and several other articles for details of the Disc model, and see
 
     .. automethod:: run
 
+**********************
+Event Classes
+**********************
+
+The classes of event in a given simulation are specified by 
+providing a list of Event Class instances 
+in the :attr:`ercs.Simulator.event_classes` attribute. 
+Two classes of event are currently supported:
+the Disc model and the Gaussian model. See [E08]_, [BEV10]_, [BEV12]_
+and several other articles for details of the Disc model, and see 
+[BKE10]_ and [BEV12]_ for details of the Gaussian model.
+
+.. autoclass:: ercs.EventClass
+
+.. autoclass:: ercs.DiscEventClass
+
+.. autoclass:: ercs.GaussianEventClass
+
+
+
 
 
 **********************
@@ -670,18 +671,34 @@ Utilities
 -----------------------------------
 
 The :mod:`ercs` module delegates the majority of its work to the low-level :mod:`_ercs`
-extension module, which is written in C. It is not recommended to call this 
-module directly - the :mod:`ercs` module provides all of the functionality with a 
-much more straightforward interface. In the interested of completeness,
+extension module, which is written in C. It is not recommended to use this 
+module directly---the :mod:`ercs` module provides all of the functionality with a 
+much more straightforward interface. In the interest of completeness,
 however, the low-level module is documented here.
 
-.. automodule:: _ercs
-
-********************
-Simulation interface
-********************
-
 .. autofunction:: _ercs.simulate 
+
+In the ``_ercs`` module, event classes are specified by dictionaries 
+of key-value pairs 
+describing the rate events of a particular class happen, the type of event 
+and the parameters unique to each event class. Each dictionary must have
+two fields: ``rate`` and ``type``. The ``rate`` field specifies the rate
+that this class of events happens at and is a float. The ``type`` field 
+specifies the type of events. The supported event classes are:
+
+Disc Events
+   Events from the disc model have ``type`` equal to DISC_EVENT_CLASS and 
+   two further fields: ``r`` is a double value specifying the radius of 
+   the event and ``u`` is a double value specifying the impact of the event.
+   Example: `{\"type\":DISC_EVENT_CLASS, \"rate\":1.0, \"r\":2.0, 
+   \"u\":0.5}` 
+Gaussian Events
+   Events from the Gaussian model have ``type`` equal to GAUSSIAN_EVENT_CLASS 
+   and three further fields: ``theta`` specifies the size of the event, 
+   ``alpha`` the relative location of parents and ``u0`` the impact. 
+   Example: `{\"type\":GAUSSIAN_EVENT_CLASS, \"rate\":1.0, \"theta\":2.0, 
+   \"u0\":0.5, \"alpha\":0.75}` 
+
 
 ------------
 Bibliography
@@ -705,6 +722,7 @@ Bibliography
 
 
 
+==================
 Indices and tables
 ==================
 
