@@ -1,3 +1,4 @@
+==============================================
 Extinction/recolonisation coalescent simulator
 ==============================================
 
@@ -7,14 +8,11 @@ Extinction/recolonisation coalescent simulator
 .. contents::
 
 
-------------
-Introduction
-------------
 
-The extinction/recolonisation model (or the spatial Lambda-Fleming-Viot process)
+The extinction/recolonisation model (or spatial Lambda-Fleming-Viot process)
 is a recently-introduced model of populations evolving in continuous space.
 In this model, individuals occupy a fixed location and all movement and 
-reproduction occur as a result of extinction/recolonisation *events*. Events 
+reproduction occur as a result of extinction/recolonisation events. Events 
 fall randomly in space, independent of the location of extant individuals.
 In each event, some of the nearby individuals  
 die and are replaced by the descendants of a small
@@ -27,12 +25,14 @@ This is the documentation for the :mod:`ercs` Python module,
 which provides a straightforward interface to coalescent simulations 
 for this model. The basic approach to simulating 
 the history of a sample and interpreting the results is explained through 
-a series of straightforward examples in the `Examples`_  section 
-along with thorough API documentation for the :mod:`ercs` module.
+a series of straightforward examples in the `Introduction`_  section. 
+We then work through a detailed example in the `Estimating identity`_
+section, which is followed by 
+detailed API documentation for the :mod:`ercs` module.
 
------------
-Examples
------------
+------------
+Introduction
+------------
 
 Simulating the coalescent for the extinction/recolonisation model using 
 :mod:`ercs` follows a basic pattern:
@@ -50,6 +50,10 @@ Simulating the coalescent for the extinction/recolonisation model using
 In the following examples we look at the parameters of the simulation, the 
 structure of the simulated genealogies (and how we can analyse them) and 
 how we can use these tools to estimate values of interest.
+
+.. note :: The examples in this section generally assume that Python 3
+    is being used, and may not work under Python 2. However,
+    both Python 2 and Python 3 are **fully supported** by :mod:`ercs`.
 
 **************************
 Basic usage
@@ -72,11 +76,11 @@ simple example::
         return sim.run(seed) 
 
 In this example we allocate a simulator on a torus of diameter 20,  
-set up our sample and event classes, run the simulation
-and the resulting genealogy. The size of the torus is
+and set up our sample and event classes. We then run the simulation
+and return the resulting genealogy. The size of the torus is
 rather arbitrary, as the real size of the habitat that 
 we imagine our population evolving on is determined by the scale 
-of events relative to the size of the torus. Thus, the size of the 
+of events relative to the size of the torus. As a result, the size of the 
 torus can be any value you wish, once the spatial extent of events 
 is scaled appropriately.
 
@@ -94,7 +98,7 @@ rates: see `Event Classes`_ for details.
 
 .. note:: In these examples we'll tend to 
     use rather large events, as it's useful to have examples that 
-    run quickly. These represent highly unrealistic evolutionary scenarios. 
+    run quickly. 
 
 **************************
 Samples
@@ -126,15 +130,13 @@ mapping out explicitly we get:
 {1: (0, 0), 2: (0, 5), 3: (0, 10)}
 
 
-
-
 **************************
 Oriented trees and forests
 **************************
 
 After we have completed setting up the parameters of the simulation
-we can then run the simulation by calling the 
-:meth:`ercs.Simulator.run` method for a given random seed. 
+we can then run it by calling  
+:meth:`ercs.Simulator.run` for a given random seed. 
 Running the example above, we get
 
 >>> first_example(3)
@@ -146,25 +148,28 @@ Running the example above, we get
 This output completely describes the ancestry of the sample, although it's not immediately
 obvious how. In ``ercs`` we use *oriented trees* to represent the genealogy of a sample.
 In an oriented tree, we are only interested in parent-child relationships
-and don't care about the order of children at a node. Therefore, in an oriented tree
-``pi``, the parent of node ``j`` is ``pi[j]``. If we map each node in the tree to a unique 
+and don't care about the order of children at a node. 
+If we map each node in the tree to a unique 
 positive integer and adopt the convention that any node whose parent is the 
 special "null node" ``0`` is a root, 
 we can then represent an oriented tree very simply as a list of integers.
+So, an oriented tree ``pi`` is  a list in which 
+the parent of node ``j`` is ``pi[j]``, the grandparent of ``j`` is ``pi[pi[j]]``
+and so on.
+
 
 The :meth:`ercs.Simulator.run` method returns a tuple, ``(pi, tau)``;
 ``pi`` is a list of oriented forests (one for each locus) and ``tau`` is a list of 
-node times (one for each locus). In the example, we are dealing with a single locus 
-only, so ``pi`` is a list consisting of one list, ``[-1, 4, 4, 5, 5, 0]``, that 
-encodes the following tree:
+node times (one for each locus). In the example, we are dealing with a single locus, 
+so ``pi`` is a list consisting of one list, ``[-1, 4, 4, 5, 5, 0]``.
+This list encodes the following tree, in which 
+the leaf nodes ``1``, ``2`` and ``3`` corresponds to the locations in our sample:
 
 .. image::  ../images/oriented-tree.png
    :align: center 
    :alt: An oriented tree
    :width: 15cm
 
-The leaf nodes ``1``, ``2`` and ``3`` correspond to the locations in our sample
-as discussed above.
 Mapping all nodes in the oriented tree to their parents explicitly, we get:
 
 >>> pi, tau = first_example(3)
@@ -178,8 +183,7 @@ Mapping all nodes in the oriented tree to their parents explicitly, we get:
 The times labelled on the tree are derived from the node times list for this 
 locus, ``tau[0]``. The node times list associated with an oriented tree 
 records the time that the associated lineage entered the sample, looking 
-backwards in time (hence, for each node in the sample the time is ``0.0``).
-
+backwards in time.
 
 Oriented *forests* occur when there is more than one root in a list ``pi``, and 
 so we have a set of disconnected trees. This can happen when we specify
@@ -257,10 +261,11 @@ tau =  [[-1, 0.0, 0.0, 0.0, 0.0, 1495.7013764597423, 51935.87882804881, 231859.8
         mrca(2, 4) = 7 @ 231859.81
         mrca(3, 4) = 6 @ 51935.88
 
-Here we can see, for example, that the MRCA of nodes ``1`` and ``2`` is ``5`` 
-which can be read directly from ``pi``, as it is also their parent. Then, 
-reading the time of node ``5`` from ``tau`` we see that their coalescence 
-time is 1495.70. 
+Here we can see, for example, that the MRCA of nodes ``1`` and ``3`` is ``7`` 
+(since the parent of ``1`` is ``5``, the parent of ``3`` is ``6``
+and ``5`` and ``6`` are both children of ``7``).
+Then, reading the time of node ``7`` from ``tau`` we see that their coalescence 
+time is 231859.81.
 
 ****************************
 Multiple loci
@@ -276,44 +281,38 @@ probabilities to describe the system in a general way.
 The :attr:`ercs.Simulator.recombination_probabilities` attribute is used 
 to describe both the number of loci and the recombination rates between them.
 By default, this attribute is set to the empty list, specifying a single
-locus system. In the following example
-we compute the joint probability of identity in state given a mutation 
-rate ``mu`` at two loci in a single 
-replicate::
+locus system. In the following example we set up a three locus system
+in which we calculate the coalescence time at each locus::
     
-    def two_locus_example(seed):
-        mu = 1e-7
-        sim = ercs.Simulator(40)
-        sim.sample = [None] + [(10, 10), (20, 10)]
+    def multi_locus_example(seed):
+        sim = ercs.Simulator(20)
+        sim.sample = [None] + [(0, 10), (15, 15)]
         sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
-        sim.recombination_probabilities = [0.1]
+        sim.recombination_probabilities = [0.1, 1e-7]
         pi, tau = sim.run(seed)
-        return math.exp(-2 * mu * tau[0][3]) * math.exp(-2 * mu * tau[1][3])
+        return tau[0][3], tau[1][3], tau[2][3]
 
+>>> multi_locus_example(30)
+(256162.39313980262, 190032.351005425, 190032.351005425)
 
-Since our sample is of size two, the MRCA of nodes ``1`` and ``2`` must 
-be ``3``. The probability of identity in state for two genes with coalescence
-time ``t`` and mutation at rate ``mu`` 
-under the infinite sites model is ``exp(-2 * mu * t)``. The joint probability 
-of identity is then the product of the probability of identity at 
-each locus.
-
-Running this example gives us:
-
->>> two_locus_example(30)
-0.06931300943428219
+(There are only two lineages in our sample so
+the MRCA of nodes ``1`` and ``2`` must be be ``3``.) 
+This shows us that there was an effective recombination 
+between the first and second locus at come point in the history 
+of the sample, since the coalescence time at the first locus is not 
+the same as the other two loci.
 
 .. note:: Loci are zero-indexed in the usual Python way, unlike individuals 
     in the sample.
 
-The example above shows how we can simulate two loci, and can be generalised
-to larger numbers of loci in a straightforward way. However, since the number 
-of lineages can grow to be very large when we deal with large numbers of loci,
-it may be necessary to become more familiar with some more advanced properties 
+The example above shows how we can simulate two loci, and can be 
+easily generalised to larger numbers of loci. Since the number 
+of lineages can become very large when we deal with large numbers of loci,
+however, it may be necessary to become familiar with some more advanced properties 
 of the simulation implementation.
 
 The first issue is to decide how much memory you are willing to dedicate 
-to the task of tracking lineages; this is done by specifiying the maximum 
+to the task of tracking lineages; this is done by specifying the maximum 
 number of lineages in the sample using the 
 :attr:`ercs.Simulator.max_lineages` attribute.
 When the number of lineages in the sample
@@ -331,14 +330,14 @@ illustrated in the following example::
 >>> out_of_memory_example()
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
-  File "example.py", line 77, in out_of_memory_example
-    pi, tau = sim.run(1)
-  File "ercs.py", line 116, in run
-     self.max_time, 0)
+  File "<stdin>", line 7, in out_of_memory_example
+  File "ercs.py", line 118, in run
+    self.max_time, 0)
 _ercs.LibraryError: Out of lineage memory
 
+
 The example fails because we try to simulate the
-ancestry of two 500 locus individuals with a limit of only 10 extant individuals. 
+ancestry of two 500 locus individuals with a limit of only 10 extant lineages. 
 If we wish to simulate the entire history of the sample, we must increase
 the number maximum number of lineages. On the other hand, if we are only 
 interested in the recent history of the sample, we can stop the simulation 
@@ -348,97 +347,219 @@ attribute.
 Lineages are indexed using a kdtree to allow us to find 
 the lineages that may potentially be hit by an event 
 efficiently. The 
-:attr:`ercs.Simulator.kdtree_bucket_size` 
+:attr:`ercs.Simulator.kdtree_bucket_size` and  
 :attr:`ercs.Simulator.max_kdtree_insertions` 
 attributes provide a means of tuning this data structure for 
-performance when very large numbers of lineages are involved.
-
-****************************
-DRAFT 
-****************************
-Everything below this point is in development.
+performance when large numbers of lineages are involved.
 
 
-****************************
-A full example
-****************************
+----------------------
+Estimating identity
+----------------------
 
-Up to this point we have considered models in which a single class 
-of event occurs at rate 1.0. We can simulate an arbitrary number 
-of event classes happening at different rates, however; we simply
-set the :attr:`ercs.Simulator.event_classes` attribute to a list 
-consisting of :class:`ercs.EventClass` instances with the required rates and 
-properties.
+The examples up to this point have been intended to illustrate the core 
+concepts of using :mod:`ercs`, and have not done anything particularly 
+useful.  In this section we work through a complete example of how the module can 
+be used to estimate the probability of identity in state.
+The example is necessarily more complex that the toy examples above, but 
+should provide a useful template for further simulations.
+To keep the code as concise as possible we use the 
+popular `NumPy <http://numpy.scipy.org/>`_ and 
+`matplotlib <http://matplotlib.org/>`_ third party packages. These packages 
+are included in most operating system package managers, or can be installed 
+from the `Python Package Index <http://pypi.python.org/pypi>`_.
 
-For example, Figure 2 of [BEV12]_  plots the probability of identity in
-state for three event regimes: one in which we have small events only;
-another in which we have large events only; and finally a regime
-in which we have a mixture of the two. The following example 
-returns the probability of identity for evenly spaced samples in a 
-single replicate::
-    
-    def mixed_events_example(seed):
-        L = 40
-        sim = ercs.Simulator(L)
-        sim.sample = [None] + [(0, j) for j in range(1, 10)]
-        sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
-        pi, tau = sim.run(seed)
-        sv = ercs.MRCACalculator(pi[0])
-        # TODO  Fill me in. 
- 
+To begin with, we import some modules we'll need later 
+and define a class extending :class:`ercs.Simulator`::
 
-
-The most common use of coalescent simulation is to estimate the distribution 
-of some quantity by aggregating over many different replicates. This is 
-done in ``ercs`` by running the ``run`` method with different random 
-seeds, one for each replicate. Since each replicate is then completely 
-independent, we can easily parallelise the process. One possible way 
-to this is using the :mod:`multiprocessing` module::
-    
     import ercs
-    import multiprocessing
-
-    def parallel_run(seed):
-        sim = ercs.Simulator(50)
-        sim.sample = [(1, 1), (2, 2)]
-        sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
-        pi, tau = sim.run(seed) 
-        coal_time = tau[0][3]
-        return coal_time 
-
-    def parallel_example(num_replicates):
-        pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())       
-        coal_times = pool.map(parallel_run, range(1, num_replicates + 1)) 
-        return sum(coal_times) / num_replicates
-
-In this example we are working on a torus of diameter 100, so the simulations 
-require a lot longer to run. On most modern systems we have many CPU cores, 
-and so we use the multiprocessing module to distribute the work of many
-replicates across these cores.
-
->>> parallel_example(100)
-2968953.9276501946
-
-This is the mean coalescence time among 100 replicates. The multiprocessing 
-module runs ``parallel_run`` function for each of the seeds in 
-a subprocess and collects the coalescence times into the list 
-``coal_times``. We then take the mean of this list and return it.
-The random seeds are simply the integers from 1 to 100. This is a perfectly
-legitimate way to choose seeds for a single example, since the random 
-sequences for adjacent seeds are not correlated. If, however, we are 
-are doing lots of simulations with different parameter values or are
-distributing our simulations over several machines, it would be better 
-to spread our choice of seeds out more evenly across the possible space.
-One way to do this is::
-    
+    import math
     import random
-    seeds = [random.randint(1, 2**31 - 1) for j in range(100)]
+    import pickle
+    import numpy as np
+    import multiprocessing
+    from matplotlib import ticker 
+    from matplotlib import pyplot
 
-There is no issue with using the Python random generator within your
-code, as the ``ercs`` C library generates random numbers independently 
-of Python (using the ``mt19937`` random number generator from the 
-`GNU Scientific Library 
-<http://www.gnu.org/software/gsl/manual/html_node/Random-number-generator-algorithms.html>`_).
+    class SingleLocusIdentitySimulator(ercs.Simulator):
+        """
+        Class that calculates identity in state for genes separated by a range 
+        of distances.
+        """
+        def setup(self, num_points, max_distance, mutation_rate, accuracy_goal): 
+            """
+            Sets up the simulation so that we calculate identity at the specified 
+            number of points, the maximum distance between points is 
+            max_distance and mutation happens at the specified rate. Also
+            set the max_time attribute to reflect the specified accuracy_goal.
+            """
+            self.mutation_rate = mutation_rate
+            self.distances = np.linspace(0, max_distance, num_points)
+            self.sample = [None, (0, 0)] + [(0, x) for x in self.distances] 
+            self.max_time = math.log(accuracy_goal) / (-2 * mutation_rate)
+            
+        def get_identity(self, seed):
+            """
+            Returns the probability of identity at all distance classes 
+            in this replicate.
+            """
+            pi, tau = self.run(seed)
+            mc = ercs.MRCACalculator(pi[0])
+            n = len(self.distances)
+            F = [0.0 for j in range(n)] 
+            for j in range(n):
+                mrca = mc.get_mrca(1, j + 2)
+                if mrca != 0:
+                    F[j] = math.exp(-2 * self.mutation_rate * tau[0][mrca]) 
+            return F
+
+
+Under the infinite alleles model, the probability of identity in state for two genes
+with coalescence time ``t`` is given by ``exp(-2 * mu * t)``, assuming mutations 
+arise at rate ``mu``. Mutations occur independently along the branches of the 
+genealogy, and the number of mutations on each branch follows a Poisson distribution.
+Therefore, the probability that zero mutational events happen along one branch
+is ``exp(-mu * t)`` and the probability that zero mutations occur on both 
+branches is ``exp(-2 * mu * t)``.
+
+In these simulations we wish to estimate the *mean* of the distribution 
+of probability of identity in state for a known  
+mutation rate. Under these conditions we can make an observation
+that dramatically reduces the 
+amount of time we need to spend simulating the model. 
+In the extinction/recolonisation 
+model there is a strong separation of timescales effect, in which nearby 
+genes either coalesce in the relatively recent past or they spent a very 
+long time wandering around the torus. So long, in fact, that their 
+contribution to the mean of the distribution of 
+probability of identity in state is negligible. 
+
+We can make this a bit more concrete if we define a value ``accuracy_goal``, below which 
+we consider probabilities of identity to be negligible. Let's say for example 
+that this is 10\ :sup:`-10`, and our mutation rate ``mu`` is 
+10\ :sup:`-6`. We can then solve for ``t`` to find the time that corresponds
+to these values:
+
+>>> max_t = math.log(1e-10) / (-2 * 1e-6)
+>>> max_t
+11512925.46497023
+
+We then use the :attr:`ercs.Simulator.max_time` attribute to ensure 
+that the simulation stops when ``max_t`` is reached. If lineages 
+have coalesced, then we know that their probability of identity 
+in state is no less than 10\ :sup:`-10`, and if lineages 
+have not coalescenced, then their identity is  
+less than 10\ :sup:`-10` which we have decided 
+should be treated as zero.
+
+The ``setup`` method implements these ideas to set the 
+:attr:`ercs.Simulator.max_time` attribute for a given mutation rate
+and accuracy goal, and also sets up the sample so 
+that we can calculate the probability of identity in state at a sequence 
+of evenly spaced separation distances. The ``get_identity`` method
+then runs a replicate of the simulation and calculates the probability 
+of identity at each distance. If a pair of lineages has no 
+MRCA then we know that they have not coalesced, and so we set 
+their probability of identity to zero. 
+
+.. warning:: The ``accuracy_goal`` in no way implies that the digits greater
+   than ``accuracy_goal`` in  a probability of identity are correct. 
+   We can guarantee only 
+   the following: if ``u`` is the probability of identity in state calculated
+   using a given value of ``accuracy_goal`` and ``v`` is the value calculated
+   by letting the simulation continue until coalescence *for the same 
+   random seed*, then ``v - u <= accuracy_goal``. This property is sufficient 
+   for estimating the *mean* of a distribution to approximately ``accuracy_goal``
+   if the true mean is much greater than ``accuracy_goal``,
+   but is not sufficient to estimate statistics in general. 
+   **Use with caution!**
+
+
+The variance in coalescence times in the extinction/recolonisation
+model is very large, and so we need a large number of replicates to estimate 
+the mean identity with reasonable accuracy.
+These replicates are independent, however, so  
+we can run them in parallel quite easily.
+We use the following pair of functions to generate
+a set of random seeds, distribute these jobs to pool of worker 
+processes provided by the :mod:`multiprocessing` module and save the 
+results to a file::
+
+    def subprocess_worker(t):
+        sim, seed = t
+        return sim.get_identity(seed)
+
+    def run_replicates(sim, filename, num_replicates, worker_pool):
+        args = [(sim, random.randint(1, 2**31)) for j in range(num_replicates)]
+        replicates = worker_pool.map(subprocess_worker, args)
+        mean_identity = np.mean(np.array(replicates), axis=0)
+        mean_identity.tofile(filename)
+
+.. note:: The particular structure of how these two functions are called is dictated by
+    the technical details of how multiprocessing works. Specifically,
+    the argument to :meth:`multiprocessing.Pool.map` must be picklable so we cannot 
+    call ``sim.get_identity(seed)`` directly.
+
+We then have all the tools we need to define our top-level simulation function:: 
+
+    def run_simulations(num_replicates):
+        sim = SingleLocusIdentitySimulator(100)
+        sim.setup(50, 20, 1e-6, 1e-3)
+        small_events = ercs.DiscEventClass(rate=1.0, r=1, u=0.5)
+        large_events = ercs.DiscEventClass(rate=0.1, r=10, u=0.05)
+        workers = multiprocessing.Pool(processes=multiprocessing.cpu_count())
+        sim.event_classes = [small_events]
+        run_replicates(sim, "small.dat", num_replicates, workers)
+        sim.event_classes = [large_events]
+        run_replicates(sim, "large.dat", num_replicates, workers)
+        sim.event_classes = [small_events, large_events]
+        run_replicates(sim, "mixed.dat", num_replicates, workers)
+        with open("simulator.dat", "wb") as f:
+            pickle.dump(sim, f)
+
+We start by allocating a simulator on a torus of diameter ``100``, and then 
+set up our sample so that we have fifty equally spaced distances from ``0`` 
+to ``20``. We also define our mutation rate of 10\ :sup:`-6`, and, since 
+we're just generating an example for a web page and already know 
+the rough magnitude of the values we wish to plot, set our accuracy goal 
+to 10\ :sup:`-3`.
+A convenient way to plot these results in Python is to 
+use `matplotlib <http://matplotlib.org/>`_::
+
+    def generate_plot():
+        small = np.fromfile("small.dat") 
+        mixed = np.fromfile("mixed.dat") 
+        large = np.fromfile("large.dat") 
+        with open("simulator.dat", "rb") as f:
+            sim = pickle.load(f)
+        pyplot.plot(sim.distances, small, label="small")
+        pyplot.plot(sim.distances, mixed, label="mixed")
+        pyplot.plot(sim.distances, large, label="large")
+        pyplot.yscale("log")
+        pyplot.ylim(min(large), max(small))
+        pyplot.gca().yaxis.set_minor_formatter(ticker.ScalarFormatter())
+        pyplot.xlabel("x")
+        pyplot.ylabel("F(x)")
+        pyplot.legend(loc="upper right")
+        pyplot.savefig("identity.png", dpi=72)
+
+    if __name__ == "__main__":
+        run_simulations(100000)
+        generate_plot()
+
+Running the complete code, which will take a few hours, gives us 
+the following plot:
+
+.. image::  ../images/identity.png
+   :align: center 
+   :alt: Probability of identity in state. 
+   :width: 15cm
+
+There are much better ways to estimate the mean of the distribution of 
+the probability of identity in 
+state, of course. This section is intended to provide an example
+of how :mod:`ercs` can be used to estimate statistics for which analytical 
+or numerical methods are not available.
 
 
 -----------------------------------
@@ -446,24 +567,6 @@ of Python (using the ``mt19937`` random number generator from the
 -----------------------------------
 
 .. automodule:: ercs
-
-**********************
-Event Classes
-**********************
-
-The classes of event in a given simulation are specified by 
-providing a list of Event Class instances 
-in the :attr:`ercs.Simulator.event_classes` attribute. 
-Two classes of event are currently supported:
-the Disc model and the Gaussian model. See [E08]_, [BEV10]_, [BEV12]_
-and several other articles for details of the Disc model, and see 
-[BKE10]_ and [BEV12]_ for details of the Gaussian model.
-
-.. autoclass:: ercs.EventClass
-
-.. autoclass:: ercs.DiscEventClass
-
-.. autoclass:: ercs.GaussianEventClass
 
 
 ***********************
@@ -493,7 +596,7 @@ and several other articles for details of the Disc model, and see
         The diameter of the torus we are simulating on. This defines the 
         size of the space that lineages can move around in. 
         
-        **Default value:** Specified at substantiation time.
+        **Default value:** Specified at instantiation time.
 
     .. attribute:: num_parents 
 
@@ -533,8 +636,8 @@ and several other articles for details of the Disc model, and see
 
     .. attribute:: kdtree_bucket_size 
 
-       The number of locations in a leaf node of the kdtree; must be a power of 
-       two, greater than 0. The ``kdtree_bucket_size``
+       The number of locations in a leaf node of the kdtree, which  must be a power of 
+       two. The ``kdtree_bucket_size``
        is an advanced parameter that may be useful in tuning performance when very 
        large numbers of lineages are involved. Larger values will result in less 
        time and memory spent indexing the lineages, but more lineages will need to
@@ -563,6 +666,26 @@ and several other articles for details of the Disc model, and see
 
     .. automethod:: run
 
+**********************
+Event Classes
+**********************
+
+The classes of event in a given simulation are specified by 
+providing a list of Event Class instances 
+in the :attr:`ercs.Simulator.event_classes` attribute. 
+Two classes of event are currently supported:
+the Disc model and the Gaussian model. See [E08]_, [BEV10]_, [BEV12]_
+and several other articles for details of the Disc model, and see 
+[BKE10]_ and [BEV12]_ for details of the Gaussian model.
+
+.. autoclass:: ercs.EventClass
+
+.. autoclass:: ercs.DiscEventClass
+
+.. autoclass:: ercs.GaussianEventClass
+
+
+
 
 
 **********************
@@ -581,18 +704,34 @@ Utilities
 -----------------------------------
 
 The :mod:`ercs` module delegates the majority of its work to the low-level :mod:`_ercs`
-extension module, which is written in C. It is not recommended to call this 
-module directly - the :mod:`ercs` module provides all of the functionality with a 
-much more straightforward interface. In the interested of completeness,
+extension module, which is written in C. It is not recommended to use this 
+module directly---the :mod:`ercs` module provides all of the functionality with a 
+much more straightforward interface. In the interest of completeness,
 however, the low-level module is documented here.
 
-.. automodule:: _ercs
-
-********************
-Simulation interface
-********************
-
 .. autofunction:: _ercs.simulate 
+
+In the ``_ercs`` module, event classes are specified by dictionaries 
+of key-value pairs 
+describing the rate events of a particular class happen, the type of event 
+and the parameters unique to each event class. Each dictionary must have
+two fields: ``rate`` and ``type``. The ``rate`` field specifies the rate
+that this class of events happens at and is a float. The ``type`` field 
+specifies the type of events. The supported event classes are:
+
+Disc Events
+   Events from the disc model have ``type`` equal to DISC_EVENT_CLASS and 
+   two further fields: ``r`` is a double value specifying the radius of 
+   the event and ``u`` is a double value specifying the impact of the event.
+   Example: `{\"type\":DISC_EVENT_CLASS, \"rate\":1.0, \"r\":2.0, 
+   \"u\":0.5}` 
+Gaussian Events
+   Events from the Gaussian model have ``type`` equal to GAUSSIAN_EVENT_CLASS 
+   and three further fields: ``theta`` specifies the size of the event, 
+   ``alpha`` the relative location of parents and ``u0`` the impact. 
+   Example: `{\"type\":GAUSSIAN_EVENT_CLASS, \"rate\":1.0, \"theta\":2.0, 
+   \"u0\":0.5, \"alpha\":0.75}` 
+
 
 ------------
 Bibliography
@@ -616,6 +755,7 @@ Bibliography
 
 
 
+==================
 Indices and tables
 ==================
 
