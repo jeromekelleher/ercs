@@ -312,7 +312,7 @@ however, it may be necessary to become familiar with some more advanced properti
 of the simulation implementation.
 
 The first issue is to decide how much memory you are willing to dedicate 
-to the task of tracking lineages; this is done by specifiying the maximum 
+to the task of tracking lineages; this is done by specifying the maximum 
 number of lineages in the sample using the 
 :attr:`ercs.Simulator.max_lineages` attribute.
 When the number of lineages in the sample
@@ -418,8 +418,8 @@ Under the infinite alleles model, the probability of identity in state for two g
 with coalescence time ``t`` is given by ``exp(-2 * mu * t)``, assuming mutations 
 arise at rate ``mu``. Mutations occur independently along the branches of the 
 genealogy, and the number of mutations on each branch follows a Poisson distribution.
-Therefore, the probabilty that ``0`` mutational events happen along one branch
-is ``exp(-mu * t)`` and the probabilty that ``0`` mutations occur on both 
+Therefore, the probability that zero mutational events happen along one branch
+is ``exp(-mu * t)`` and the probability that zero mutations occur on both 
 branches is ``exp(-2 * mu * t)``.
 
 In these simulations we wish to estimate the *mean* of the distribution 
@@ -428,24 +428,29 @@ mutation rate. Under these conditions we can make an observation
 that dramatically reduces the 
 amount of time we need to spend simulating the model. 
 In the extinction/recolonisation 
-model there is a strong seperation of timescales effect, in which nearby 
+model there is a strong separation of timescales effect, in which nearby 
 genes either coalesce in the relatively recent past or they spent a very 
 long time wandering around the torus. So long, in fact, that their 
 contribution to the mean of the distribution of 
 probability of identity in state is negligible. 
 
-We can make this a bit more precise if we define a value ``accuracy_goal``, below which 
+We can make this a bit more concrete if we define a value ``accuracy_goal``, below which 
 we consider probabilities of identity to be negligible. Let's say for example 
 that this is 10\ :sup:`-10`, and our mutation rate ``mu`` is 
 10\ :sup:`-6`. We can then solve for ``t`` to find the time that corresponds
 to these values:
 
->>> math.log(1e-10) / (-2 * 1e-6)
+>>> max_t = math.log(1e-10) / (-2 * 1e-6)
+>>> max_t
 11512925.46497023
 
-Therefore, by setting the :attr:`ercs.Simulator.max_time` attribute to 
-this value, we know that the resulting identity must be less that 
-10\ :sup:`-10`, which we have decided can be treated as zero.
+We then use the :attr:`ercs.Simulator.max_time` attribute to ensure 
+that the simulation stops when ``max_t`` is reached. If lineages 
+have coalesced, then we know that their probability of identity 
+in state is no less than 10\ :sup:`-10`, and if lineages 
+have not coalescenced, then their identity is  
+less than 10\ :sup:`-10` which we have decided 
+should be treated as zero.
 
 The ``setup`` method implements these ideas to set the 
 :attr:`ercs.Simulator.max_time` attribute for a given mutation rate
@@ -453,10 +458,9 @@ and accuracy goal, and also sets up the sample so
 that we can calculate the probability of identity in state at a sequence 
 of evenly spaced separation distances. The ``get_identity`` method
 then runs a replicate of the simulation and calculates the probability 
-of identity at each distance. If the simulation has stopped because 
-``max_time`` was exceeded, then the lineages may not have coalesced
-and so their MRCA is ``0`` and their probability of identity is set 
-to ``0.0``.
+of identity at each distance. If a pair of lineages has no 
+MRCA then we know that they have not coalesced, and so we set 
+their probability of identity to zero. 
 
 .. warning:: The ``accuracy_goal`` in no way implies that the digits greater
    than ``accuracy_goal`` in  a probability of identity are correct. 
@@ -464,12 +468,19 @@ to ``0.0``.
    the following: if ``u`` is the probability of identity in state calculated
    using a given value of ``accuracy_goal`` and ``v`` is the value calculated
    by letting the simulation continue until coalescence *for the same 
-   random seed*, then ``v - u <= accuracy_goal``. **Use with caution!**
+   random seed*, then ``v - u <= accuracy_goal``. This property is sufficient 
+   for estimating the *mean* of a distribution to approximately ``accuracy_goal``
+   if the true mean is much greater than ``accuracy_goal``,
+   but is not sufficient to estimate statistics in general. 
+   **Use with caution!**
 
 
-Estimating the probability of identity in state to any degree of accuracy
-requires a large number of replicates, but since replicates are independent, 
-we can run them in parallel. We use the following pair of functions to generate
+The variance in coalescence times in the extinction/recolonisation
+model is very large, and so we need a large number of replicates to estimate 
+the mean identity with reasonable accuracy.
+These replicates are independent, however, so  
+we can run them in parallel quite easily.
+We use the following pair of functions to generate
 a set of random seeds, distribute these jobs to pool of worker 
 processes provided by the :mod:`multiprocessing` module and save the 
 results to a file::
@@ -483,6 +494,11 @@ results to a file::
         replicates = worker_pool.map(subprocess_worker, args)
         mean_identity = np.mean(np.array(replicates), axis=0)
         mean_identity.tofile(filename)
+
+.. note:: The particular structure of how these two functions are called is dictated by
+    the technical details of how multiprocessing works. Specifically,
+    the argument to :meth:`multiprocessing.Pool.map` must be picklable so we cannot 
+    call ``sim.get_identity(seed)`` directly.
 
 We then have all the tools we need to define our top-level simulation function:: 
 
@@ -502,19 +518,13 @@ We then have all the tools we need to define our top-level simulation function::
             pickle.dump(sim, f)
 
 We start by allocating a simulator on a torus of diameter ``100``, and then 
-setup our sample so that we have fifty equally spaced distances from ``0`` 
+set up our sample so that we have fifty equally spaced distances from ``0`` 
 to ``20``. We also define our mutation rate of 10\ :sup:`-6`, and, since 
-we're just generating an example for a webpage and already know 
-the rough magnitude of the identities, set our accuracy goal 
+we're just generating an example for a web page and already know 
+the rough magnitude of the values we wish to plot, set our accuracy goal 
 to 10\ :sup:`-3`.
-We then allocate the 
-event classes that we are interested in simulating. Here we have two 
-different types of event: small frequent events, with a large impact 
-and large rare events with a small impact. We wish to see how the 
-probability of identity in state is affected when we have these two 
-event classes on their own, and also when they are mixed. To plot 
-these results, we use 
-`matplotlib <http://matplotlib.org/>`_::
+A convenient way to plot these results in Python is to 
+use `matplotlib <http://matplotlib.org/>`_::
 
     def generate_plot():
         small = np.fromfile("small.dat") 
@@ -533,16 +543,23 @@ these results, we use
         pyplot.legend(loc="upper right")
         pyplot.savefig("identity.png", dpi=72)
 
-Putting all this together, we get::
-
     if __name__ == "__main__":
         run_simulations(100000)
         generate_plot()
+
+Running the complete code, which will take a few hours, gives us 
+the following plot:
 
 .. image::  ../images/identity.png
    :align: center 
    :alt: Probability of identity in state. 
    :width: 15cm
+
+There are much better ways to estimate the mean of the distribution of 
+the probability of identity in 
+state, of course. This section is intended to provide an example
+of how :mod:`ercs` can be used to estimate statistics for which analytical 
+or numerical methods are not available.
 
 
 -----------------------------------
