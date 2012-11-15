@@ -365,7 +365,9 @@ The example is necessarily more complex that the toy examples above, but
 should provide a useful template for further simulations.
 To keep the code as concise as possible we use the 
 popular `NumPy <http://numpy.scipy.org/>`_ and 
-`matplotlib <http://matplotlib.org/>`_ third party packages.
+`matplotlib <http://matplotlib.org/>`_ third party packages. These packages 
+are included in most operating system package managers, or can be installed 
+from the `Python Package Index <http://pypi.python.org/pypi>`_.
 
 To begin with, we import some modules we'll need later 
 and define a class extending :class:`ercs.Simulator`::
@@ -384,25 +386,18 @@ and define a class extending :class:`ercs.Simulator`::
         Class that calculates identity in state for genes separated by a range 
         of distances.
         """
-        def setup(self, num_points, max_distance, mutation_rate): 
+        def setup(self, num_points, max_distance, mutation_rate, accuracy_goal): 
             """
             Sets up the simulation so that we calculate identity at the specified 
             number of points, the maximum distance between points is 
-            max_distance and mutation happens at the specified rate.
+            max_distance and mutation happens at the specified rate. Also
+            set the max_time attribute to reflect the specified accuracy_goal.
             """
             self.mutation_rate = mutation_rate
             self.distances = np.linspace(0, max_distance, num_points)
             self.sample = [None, (0, 0)] + [(0, x) for x in self.distances] 
-        
-        def set_max_time(self, accuracy_goal, num_replicates):
-            """
-            Sets the maximum amount of time to run the simulation based on having
-            the absolute specified accuracy goal over the specified number of 
-            replicates.
-            """
-            t = math.log(num_replicates * accuracy_goal) / (-2 * self.mutation_rate)
-            self.max_time = t 
-
+            self.max_time = math.log(accuracy_goal) / (-2 * mutation_rate)
+            
         def get_identity(self, seed):
             """
             Returns the probability of identity at all distance classes 
@@ -419,105 +414,107 @@ and define a class extending :class:`ercs.Simulator`::
             return F
 
 
+Under the infinite alleles model, the probability of identity in state for two genes
+with coalescence time ``t`` is given by ``exp(-2 * mu * t)``, assuming mutations 
+arise at rate ``mu``. Mutations occur independently along the branches of the 
+genealogy, and the number of mutations on each branch follows a Poisson distribution.
+Therefore, the probabilty that ``0`` mutational events happen along one branch
+is ``exp(-mu * t)`` and the probabilty that ``0`` mutations occur on both 
+branches is ``exp(-2 * mu * t)``.
 
-This class is responsible for setting up a sample of individuals on the torus
-such that we can calculate the probability of identity in state at a sequence 
-of evenly spaced separation distances.
-After creating an instance of ``SingleLocusIdentitySimulator`` we call the ``setup`` method
-to create our sample, with the required properties. For example, we might proceed as follows:
+In these simulations we wish to estimate the *mean* of the distribution 
+of probability of identity in state for a known  
+mutation rate. Under these conditions we can make an observation
+that dramatically reduces the 
+amount of time we need to spend simulating the model. 
+In the extinction/recolonisation 
+model there is a strong seperation of timescales effect, in which nearby 
+genes either coalesce in the relatively recent past or they spent a very 
+long time wandering around the torus. So long, in fact, that their 
+contribution to the mean of the distribution of 
+probability of identity in state is negligible. 
 
->>> sim = SingleLocusIdentitySimulator(100)
->>> sim.setup(4, 20, 1e-6)
->>> sim.sample
-[None, (0, 0), (0, 0.0), (0, 6.666666666666667), (0, 13.333333333333334), (0, 20.0)]
+We can make this a bit more precise if we define a value ``accuracy_goal``, below which 
+we consider probabilities of identity to be negligible. Let's say for example 
+that this is 10\ :sup:`-10`, and our mutation rate ``mu`` is 
+10\ :sup:`-6`. We can then solve for ``t`` to find the time that corresponds
+to these values:
 
-Here we allocate a simulation on a torus of diameter 100, and then call ``setup`` to 
-arrange our sample for us. In this case, we want four evenly spaced distances 
-from 0 to 20. We also state that our mutation rate is 10\ :sup:`-6`, which we store
-in this class for convenience.
+>>> math.log(1e-10) / (-2 * 1e-6)
+11512925.46497023
 
-The ``get_identity`` method calculates the probability of identity at each of these 
-distance classes for a given seed. This is done by running the simulation in the usual 
-way to get the history of the sample. We then calculate the MRCA of node ``1`` and each 
-other node, giving us the coalescence times for each distance class, from which 
-the probability of identity is calculated in the usual way.
+Therefore, by setting the :attr:`ercs.Simulator.max_time` attribute to 
+this value, we know that the resulting identity must be less that 
+10\ :sup:`-10`, which we have decided can be treated as zero.
 
-The ``set_max_time`` method provides a valuable means of reducing the amount 
-of time calculating identity under this approach. [Explain set_max_time]
+The ``setup`` method implements these ideas to set the 
+:attr:`ercs.Simulator.max_time` attribute for a given mutation rate
+and accuracy goal, and also sets up the sample so 
+that we can calculate the probability of identity in state at a sequence 
+of evenly spaced separation distances. The ``get_identity`` method
+then runs a replicate of the simulation and calculates the probability 
+of identity at each distance. If the simulation has stopped because 
+``max_time`` was exceeded, then the lineages may not have coalesced
+and so their MRCA is ``0`` and their probability of identity is set 
+to ``0.0``.
 
-Returning to the example, we define a top-level function to manage running 
-the simulations and storing the results::
-    
+.. warning:: The ``accuracy_goal`` in no way implies that the digits greater
+   than ``accuracy_goal`` in  a probability of identity are correct. 
+   We can guarantee only 
+   the following: if ``u`` is the probability of identity in state calculated
+   using a given value of ``accuracy_goal`` and ``v`` is the value calculated
+   by letting the simulation continue until coalescence *for the same 
+   random seed*, then ``v - u <= accuracy_goal``. **Use with caution!**
+
+
+Estimating the probability of identity in state to any degree of accuracy
+requires a large number of replicates, but since replicates are independent, 
+we can run them in parallel. We use the following pair of functions to generate
+a set of random seeds, distribute these jobs to pool of worker 
+processes provided by the :mod:`multiprocessing` module and save the 
+results to a file::
+
+    def subprocess_worker(t):
+        sim, seed = t
+        return sim.get_identity(seed)
+
+    def run_replicates(sim, filename, num_replicates, worker_pool):
+        args = [(sim, random.randint(1, 2**31)) for j in range(num_replicates)]
+        replicates = worker_pool.map(subprocess_worker, args)
+        mean_identity = np.mean(np.array(replicates), axis=0)
+        mean_identity.tofile(filename)
+
+We then have all the tools we need to define our top-level simulation function:: 
+
     def run_simulations(num_replicates):
         sim = SingleLocusIdentitySimulator(100)
-        sim.setup(50, 20, 1e-6)
-        sim.set_max_time(1e-5, num_replicates)
+        sim.setup(50, 20, 1e-6, 1e-3)
         small_events = ercs.DiscEventClass(rate=1.0, r=1, u=0.5)
         large_events = ercs.DiscEventClass(rate=0.1, r=10, u=0.05)
-        pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())       
+        workers = multiprocessing.Pool(processes=multiprocessing.cpu_count())
         sim.event_classes = [small_events]
-        run_replicates(sim, "small.dat", num_replicates, pool)
+        run_replicates(sim, "small.dat", num_replicates, workers)
         sim.event_classes = [large_events]
-        run_replicates(sim, "large.dat", num_replicates, pool)
+        run_replicates(sim, "large.dat", num_replicates, workers)
         sim.event_classes = [small_events, large_events]
-        run_replicates(sim, "mixed.dat", num_replicates, pool)
+        run_replicates(sim, "mixed.dat", num_replicates, workers)
         with open("simulator.dat", "wb") as f:
             pickle.dump(sim, f)
 
-
 We start by allocating a simulator on a torus of diameter ``100``, and then 
-setup our sample so that we fifty equally spaced distances from ``0`` 
-to ``20``. We then set the :attr:`ercs.Simulator.max_time` attribute
-to reflect our accuracy goal of 10\ :sup:`-5`, and then allocate the 
+setup our sample so that we have fifty equally spaced distances from ``0`` 
+to ``20``. We also define our mutation rate of 10\ :sup:`-6`, and, since 
+we're just generating an example for a webpage and already know 
+the rough magnitude of the identities, set our accuracy goal 
+to 10\ :sup:`-3`.
+We then allocate the 
 event classes that we are interested in simulating. Here we have two 
 different types of event: small frequent events, with a large impact 
 and large rare events with a small impact. We wish to see how the 
 probability of identity in state is affected when we have these two 
-event classes on their own, and also when they are mixed.
-These simulations are run by the ``run_replicates`` function, which also 
-saves the results into a file. Finally, we save the state of the 
-simulator object to a file also, so that we can recover the exact
-values of all its properties later.
-
-
-Estimating the probability of identity in state to any degree of accuracy
-requires a large number of replicates. Since replicates are independent, 
-we can run them in parallel, and we use the :mod:`multiprocessing` module to
-make this straightforward. In our top-level function, we allocate an instance 
-of :class:`multiprocessing.Pool`, which allows us to distribute jobs to a
-number of processes in a worker pool. Since we'd like to get things done 
-as quickly as possible, we tell the pool to allocate a worker process 
-for each CPU.
-
-::
-
-    def subprocess_runner(t):
-        sim, seed = t
-        return sim.get_identity(seed)
-
-    def run_replicates(sim, filename, num_replicates, pool):
-        args = [(sim, random.randint(1, 2**31)) for j in range(num_replicates)]
-        replicates = np.array(pool.map(subprocess_runner, args))
-        mean_identity = np.mean(replicates, axis=0)
-        mean_identity.tofile(filename)
-
-
-Replicates of the simulation are performed by running the simulation 
-on different random seeds.
-
-
-
-
-
-.. note:: There is no issue with using the Python random generator within your
-    code, as the ``ercs`` C library generates random numbers independently 
-    of Python (using the ``mt19937`` random number generator from the 
-    `GNU Scientific Library 
-    <http://www.gnu.org/software/gsl/manual/html_node/Random-number-generator-algorithms.html>`_).
-
-
-Finally, once the ``run_simulations`` function has completed, we can then plot
-the results using `matplotlib <http://matplotlib.org/>`_::
+event classes on their own, and also when they are mixed. To plot 
+these results, we use 
+`matplotlib <http://matplotlib.org/>`_::
 
     def generate_plot():
         small = np.fromfile("small.dat") 
@@ -525,11 +522,10 @@ the results using `matplotlib <http://matplotlib.org/>`_::
         large = np.fromfile("large.dat") 
         with open("simulator.dat", "rb") as f:
             sim = pickle.load(f)
-        x = sim.distances 
-        pyplot.plot(x, small, label="small")
-        pyplot.plot(x, mixed, label="mixed")
-        pyplot.plot(x, large, label="large")
-        pyplot.yscale('log')
+        pyplot.plot(sim.distances, small, label="small")
+        pyplot.plot(sim.distances, mixed, label="mixed")
+        pyplot.plot(sim.distances, large, label="large")
+        pyplot.yscale("log")
         pyplot.ylim(min(large), max(small))
         pyplot.gca().yaxis.set_minor_formatter(ticker.ScalarFormatter())
         pyplot.xlabel("x")
@@ -537,7 +533,11 @@ the results using `matplotlib <http://matplotlib.org/>`_::
         pyplot.legend(loc="upper right")
         pyplot.savefig("identity.png", dpi=72)
 
-Using this code over 100000 replicates, we get the following plot:
+Putting all this together, we get::
+
+    if __name__ == "__main__":
+        run_simulations(100000)
+        generate_plot()
 
 .. image::  ../images/identity.png
    :align: center 
