@@ -17,7 +17,7 @@
 ** along with ercs.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Python.h"
+#include <Python.h>
 
 #if PY_MAJOR_VERSION >= 3
 #define IS_PY3K
