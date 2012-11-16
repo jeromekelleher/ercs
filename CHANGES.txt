@@ -1,1 +1,1 @@
-v1.0.1b, 2012.12 -- Initial release
+v1.0.1b1, 2012.12 -- Initial release
