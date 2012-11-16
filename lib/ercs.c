@@ -106,8 +106,6 @@ probability_list_select(double *probabilities, const int n,
     return ret;
 }
 
-
-
 /*
  * Inserts a random point_t from the torus of side R into the specified 
  * double pointer.
@@ -118,8 +116,6 @@ random_point(double *p, const double R, gsl_rng *generator)
     p[0] = (double) gsl_ran_flat(generator, 0.0, R);
     p[1] = (double) gsl_ran_flat(generator, 0.0, R);
 }
-
-
 
 /* Gaussian model */
 
@@ -417,21 +413,15 @@ aa_linear_coalesce(ercs_t *self, lineage_t **children, int num_children,
     for (k = 0; k < nu; k++) {
         a = (int *) parents[k]->ancestry; 
         j = 0;
-        //printf("parent %d: ", k);
         for (l = 0; l < m; l++) {
             j += a[l];
-            //printf("%d ", a[l]);
         }
-        //printf("\n");
         if (j == 0) {
             aa_linear_free_ancestry(aas, a);
             parents[k]->ancestry = NULL; 
         }
     }
     *s_p = s;
-    
-    //printf("s = %d\n", s);
-    //ercs_print_state(self);
 out: 
     return ret;
 }
@@ -715,6 +705,7 @@ ercs_simulate(ercs_t *self, unsigned int num_events)
     lineage_t *lin;
     event_class_t *event;
     unsigned int events = 0;
+    double total_frequency = 1.0 / self->total_event_rate;
     while (self->kappa > self->num_loci && self->time < self->max_time && 
             events < num_events) {
         events++;
@@ -722,8 +713,7 @@ ercs_simulate(ercs_t *self, unsigned int num_events)
                 self->num_event_classes, gsl_rng_uniform(self->rng));
         ERCS_ERROR_CHECK(ret, out);
         event = &self->event_classes[ret];
-        self->time += gsl_ran_exponential(self->rng, 
-                1.0 / self->total_event_rate); /* TODO: get rid of this pointless op */
+        self->time += gsl_ran_exponential(self->rng, total_frequency);
         random_point(z, L, rng); 
         ret = kdtree_get_torus_region_iterator(self->kdtree, z, event->radius, 
                 L, iter);

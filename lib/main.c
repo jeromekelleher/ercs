@@ -17,6 +17,11 @@
 ** along with ercs.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/* 
+ * Simple command line front end for the ercs code. This is intended 
+ * for development purposes only!
+ */
+
 #include "ercs.h"
 
 #include <limits.h>

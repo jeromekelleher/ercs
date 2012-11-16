@@ -19,10 +19,12 @@ from matplotlib import pyplot
 """
 #################################
 
-def first_example(seed):
+def first_example(seed, num_parents):
     sim = ercs.Simulator(20)
     sim.sample =  [None, (0, 0), (0, 5), (0, 10)]
+    sim.recombination_probabilities = [0.1, 0.1]
     sim.event_classes = [ercs.DiscEventClass(u=0.5, r=1)]
+    sim.num_parents = num_parents
     return sim.run(seed) 
 
 def oriented_forest_example(seed):
@@ -158,12 +160,12 @@ def main():
     #tmp()
     #multiprocessing_example()
     #nca_example()
-    #print(first_example(3))
+    print(first_example(3, 10))
     #print(oriented_forest_example(5))
     #mrca_example(10292, 4)
     #print(two_locus_example(30))
     #
-    out_of_memory_example()
+    #out_of_memory_example()
     #run_simulations(10)
     #generate_plot()
 
