@@ -191,16 +191,15 @@ class TestBadArguments(TestLowLevelSimulate):
     """
     def test_kdtree_bucket_size(self):
         self._kdtree_bucket_size = 0
-        self.assertRaises(_ercs.LibraryError, self.simulate)
+        self.assertRaises(_ercs.InputError, self.simulate)
         self._kdtree_bucket_size = 3
-        self.assertRaises(_ercs.LibraryError, self.simulate)
+        self.assertRaises(_ercs.InputError, self.simulate)
         self._kdtree_bucket_size = -1 
-        self.assertRaises(_ercs.LibraryError, self.simulate)
+        self.assertRaises(_ercs.InputError, self.simulate)
 
     def test_max_time(self):
         self._max_time = -1
-        self.assertRaises(_ercs.LibraryError, self.simulate)
-
+        self.assertRaises(_ercs.InputError, self.simulate)
     
     def test_num_parents(self):
         self._num_parents = 0

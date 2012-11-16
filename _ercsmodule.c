@@ -38,15 +38,31 @@ static PyObject *ErcsLibraryError;
 static int
 pyercs_check_parameters(ercs_t *sim)
 {
+    int v;
     if (sim->torus_diameter <= 0.0) {
+        PyErr_SetString(ErcsInputError, "torus_diameter must be > 0.0"); 
+        goto out;
+    }
+    if (sim->max_time < 0.0) {
         PyErr_SetString(ErcsInputError, "torus_diameter must be >= 0.0"); 
         goto out;
-    }
+    } 
+    
     if (sim->num_parents <= 0) {
-        PyErr_SetString(ErcsInputError, "num_parents be >= 0"); 
+        PyErr_SetString(ErcsInputError, "num_parents must be > 0"); 
         goto out;
     }
-    
+    v = sim->kdtree_bucket_size;
+    if (v <= 0) {
+        PyErr_SetString(ErcsInputError, "kdtree_bucket_size must be > 0"); 
+        goto out;
+    }
+    if ((v & (v - 1)) != 0) {
+        PyErr_SetString(ErcsInputError, 
+                "kdtree_bucket_size must be a power of 2"); 
+        goto out;
+    }
+
 
 out:   
     return PyErr_Occurred() == NULL;
