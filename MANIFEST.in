@@ -1,4 +1,4 @@
-include example.py tests.py
+include tests.py
 include *.txt 
 recursive-include lib main.c test*.c *.h Makefile 
 recursive-include docs/build *.html *.css *.png 

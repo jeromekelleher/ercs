@@ -183,7 +183,25 @@ class TestEventClassError(TestLowLevelSimulate):
             self._event_classes = good_values + [error]
             random.shuffle(self._event_classes)
             self.assertRaises(_ercs.InputError, self.simulate)
-            
+           
+class TestBadArguments(TestLowLevelSimulate):
+    """
+    Tests to see if bad arguments for the lesser used parameters to 
+    simulate throw an error as required.
+    """
+    def test_kdtree_bucket_size(self):
+        self._kdtree_bucket_size = 0
+        self.assertRaises(_ercs.LibraryError, self.simulate)
+        self._kdtree_bucket_size = 3
+        self.assertRaises(_ercs.LibraryError, self.simulate)
+        self._kdtree_bucket_size = -1 
+        self.assertRaises(_ercs.LibraryError, self.simulate)
+
+    def test_max_time(self):
+        self._max_time = -1
+        self.assertRaises(_ercs.LibraryError, self.simulate)
+
+
 class TestOutput(TestLowLevelSimulate):
     """
     Tests the output of simulate to see if it has the right basic 

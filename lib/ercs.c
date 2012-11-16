@@ -623,7 +623,6 @@ ercs_initialise(ercs_t *self)
     ret = kdtree_init(self->kdtree, self->max_lineages, self->kdtree_bucket_size, 
             self->random_seed); 
     ERCS_ERROR_CHECK(ret, out);
-    /* Now, make sure everything is fairly sane */    
     ret = ercs_sanity_check(self);
     ERCS_ERROR_CHECK(ret, out);
     for (j = 0; j < n; j++) {

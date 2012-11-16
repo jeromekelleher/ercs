@@ -1,4 +1,4 @@
-#CFLAGS=
+# Standard gcc/linux CFLAGS and LDFLAGS
 CFLAGS=-g -Wall -Wextra
 LDFLAGS=-lm -lgsl -lgslcblas
 MAIN_LDFLAGS=${LDFLAGS} -lconfig 

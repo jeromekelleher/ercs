@@ -214,12 +214,16 @@ kdtree_init(kdtree_t *self, unsigned int max_points, unsigned int bucket_max,
     kd_internal_node *kdinp;
     list_node *lnp;
     srand(random_seed);
-    num_buckets = (int) (max_points < bucket_max? 1 :
-            (max_points / bucket_max) * 2);    
+    if (bucket_max == 0) {
+        ret = -NOT_POWER_OF_TWO;
+        num_buckets = 1; 
+    } else {
+        num_buckets = (int) (max_points < bucket_max? 1 :
+                (max_points / bucket_max) * 2);    
+    }
     self->node_set = NULL;
     self->search_stack = NULL;
     self->insertion_stack = NULL;
-
     if ((bucket_max & (bucket_max - 1)) != 0) {
         ret = -NOT_POWER_OF_TWO;
         /* continue through so that there is valid memory allocated */
