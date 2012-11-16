@@ -53,8 +53,8 @@ fatal_error(const char *msg, ...)
 static void
 read_recombination_probabilities(ercs_t *self, config_t *config)
 {
-    unsigned int j;
-    unsigned int m;
+    int j;
+    int m;
     const char *key = "recombination_probabilities";
     config_setting_t *s;
     config_setting_t *setting = config_lookup(config, key); 
@@ -84,7 +84,7 @@ read_recombination_probabilities(ercs_t *self, config_t *config)
 static void
 read_sample(ercs_t *self, config_t *config)
 {
-    unsigned int j;
+    int j;
     config_setting_t *s;
     config_setting_t *setting = config_lookup(config, "sample"); 
     if (setting == NULL) {
@@ -119,7 +119,7 @@ read_events(ercs_t *self, config_t *config)
 {
     double u, r, rate, theta, alpha; 
     int j;
-    unsigned int e;
+    int e;
     const char *type;
     config_setting_t *s, *t;
     config_setting_t *setting = config_lookup(config, "events"); 

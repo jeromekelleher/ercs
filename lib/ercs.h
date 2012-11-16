@@ -42,7 +42,7 @@ typedef struct {
     int **ancestry_heap;
     int ancestry_heap_top;
     int *ancestry_memory;
-    unsigned int *coalesced_loci;
+    int *coalesced_loci;
 } aa_linear_t;
 
 /* Event classes */
@@ -78,13 +78,13 @@ typedef struct event_class_t_t {
 
 typedef struct ercs_t_t {
     /* Input */
-    unsigned int num_loci;
-    unsigned int num_parents;
-    unsigned int sample_size;
-    unsigned int num_event_classes;
-    unsigned int kdtree_bucket_size;
-    unsigned int max_kdtree_insertions;
-    unsigned int max_lineages;
+    int num_loci;
+    int num_parents;
+    int sample_size;
+    int num_event_classes;
+    int kdtree_bucket_size;
+    int max_kdtree_insertions;
+    int max_lineages;
     long random_seed; 
     double torus_diameter;
     double max_time;
@@ -98,12 +98,12 @@ typedef struct ercs_t_t {
     point_t **insertion_buffer;
     lineage_t **parents_buffer;
     lineage_t **children_buffer;
-    unsigned int kdtree_insertions;
+    int kdtree_insertions;
     double *event_probabilities;
     double total_event_rate; 
     double time;
     /* algorithm state */ 
-    unsigned int kappa;
+    int kappa;
     int *eta;
     int **pi;
     double **tau;
@@ -117,8 +117,8 @@ typedef struct ercs_t_t {
     void (*aa_print_state)(struct ercs_t_t *); 
     void (*aa_print_ancestry)(struct ercs_t_t *, void *);
     void (*aa_free)(struct ercs_t_t *); 
-    int (*aa_coalesce)(struct ercs_t_t *, lineage_t**, unsigned int, double, 
-            lineage_t**, unsigned int *); 
+    int (*aa_coalesce)(struct ercs_t_t *, lineage_t**, int, double, 
+            lineage_t**, int *); 
     void *aa_state;
 } ercs_t;
 
@@ -127,7 +127,7 @@ void alloc_gaussian_event_class(event_class_t *event, double, double, double,
 void alloc_disc_event_class(event_class_t *, double, double, double);
 
 int ercs_initialise(ercs_t *);
-int ercs_simulate(ercs_t *, unsigned int);
+int ercs_simulate(ercs_t *, int);
 void ercs_print_state(ercs_t *);
 void ercs_free(ercs_t *);
 const char *ercs_error_str(int);

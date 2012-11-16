@@ -60,11 +60,11 @@ pointer_compare(const void *ip1, const void *ip2)
 
 static int
 compare_point_lists(kdtree_t *tree, point_t **f1, point_t **f2, 
-        unsigned int num_found1, unsigned int num_found2, int error_code)
+        int num_found1, int num_found2, int error_code)
 {
     int error = 0;
     int ret = 0;
-    unsigned int i;
+    int i;
     if (num_found2 != num_found1) {
         printf("ERROR %d != %d\n", num_found2, num_found1);
         error = 1;
@@ -93,10 +93,10 @@ compare_point_lists(kdtree_t *tree, point_t **f1, point_t **f2,
  * tree.
  */
 static int 
-kdtree_test_region_iterator(kdtree_t *tree, unsigned int num_points, double R) 
+kdtree_test_region_iterator(kdtree_t *tree, int num_points, double R) 
 {
     int ret = 0;
-    unsigned int i, j, u;
+    int i, j, u;
     point_t **f1 = xcalloc((size_t) num_points, sizeof(point_t *));
     point_t **f2 = xcalloc((size_t) num_points, sizeof(point_t *));
     kri_t *iter = xmalloc(sizeof(kri_t)); 
@@ -115,7 +115,7 @@ kdtree_test_region_iterator(kdtree_t *tree, unsigned int num_points, double R)
         ret = compare_point_lists(tree, f1, f2, i, j, -124);
         ERCS_ERROR_CHECK(ret, out);
         /* delete a random element of the list */
-        u = (unsigned int) random_int(0, (int) i - 1); 
+        u = (int) random_int(0, (int) i - 1); 
         ret = kdtree_get_torus_region_iterator(tree, p, R, R, iter);
         ERCS_ERROR_CHECK(ret, out);
         j = 0;
@@ -145,17 +145,17 @@ out:
  * exhaustive search.
  */
 static int 
-kdtree_test_torus_search(kdtree_t *tree, double *p, double r, unsigned int R, 
-        unsigned int num_points, point_t **points) 
+kdtree_test_torus_search(kdtree_t *tree, double *p, double r, int R, 
+        int num_points, point_t **points) 
 {
 
     int ret = 0;
-    unsigned int i;
+    int i;
     point_t **f1 = xcalloc((size_t) tree->max_points, sizeof(point_t *));
     point_t **f2 = xcalloc((size_t) tree->max_points, sizeof(point_t *));
     point_t *ind;
-    unsigned int num_found1 = 0;
-    unsigned int num_found2 = 0;
+    int num_found1 = 0;
+    int num_found2 = 0;
     double r2 = r * r;
     kri_t *iter = xmalloc(sizeof(kri_t)); 
     for (i = 0; i < num_points; i++) {
@@ -185,13 +185,13 @@ out:
 }
 
 static int 
-kdtree_test_search(kdtree_t *tree, unsigned int R, unsigned int num_points, 
+kdtree_test_search(kdtree_t *tree, int R, int num_points, 
         point_t **points) 
 {
     int ret = 0;
-    unsigned int i;
+    int i;
     double r; 
-    const unsigned int num_radii= 10;
+    const int num_radii= 10;
     double p[2] = {0.0, 0.0};
     for (i = 0; i < num_radii; i++) {
         r = 0.1 + ((R / 2) / ((double) num_radii)) * i;
@@ -212,11 +212,11 @@ out:
 }
 
 static int 
-test_kdtree_size(unsigned int R, unsigned int num_points, 
-        unsigned int bucket_size)
+test_kdtree_size(int R, int num_points, 
+        int bucket_size)
 {
     int ret = 0;
-    unsigned int i;
+    int i;
     kdtree_t *tree = xmalloc(sizeof(kdtree_t));
     point_t **points = xmalloc(num_points * sizeof(point_t *));
     ret = kdtree_init(tree, num_points, bucket_size, 0); 
@@ -246,13 +246,13 @@ static int
 test_kdtree(void)
 {
     int ret = 0;
-    unsigned int j, k, L, n;
-    unsigned int torus_sizes[] = {1, 2, 5, 123, 1111};
-    unsigned int num_points[] = {1, 2, 11, 50, 212, 333, 515};
+    size_t j, k, L, n;
+    int torus_sizes[] = {1, 2, 5, 123, 1111};
+    int num_points[] = {1, 2, 11, 50, 212, 333, 515};
     printf("\trunning kdtree tests");
-    for (j = 0; j < sizeof(torus_sizes) / sizeof(unsigned int); j++) {
+    for (j = 0; j < sizeof(torus_sizes) / sizeof(int); j++) {
         L = torus_sizes[j];
-        for (k = 0; k < sizeof(num_points) / sizeof(unsigned int); k++) {
+        for (k = 0; k < sizeof(num_points) / sizeof(int); k++) {
             printf(".");
             fflush(stdout);
             n = num_points[k]; 

@@ -50,19 +50,19 @@
 #define Y_DIMENSION 1
 
 /*
- * Returns the log base 2 of the specified unsigned integer n >= 1. Finds the 
+ * Returns the log base 2 of the specified integer n >= 1. Finds the 
  * position of the right-most 1 in the binary representation. 
  */
-static unsigned int 
-binary_logarithm(const unsigned int n)
+static int 
+binary_logarithm(const int n)
 {
-    unsigned int x = n;
+    int x = n;
     int ret = -1;
     while (x != 0) {
         ret++;
         x >>= 1;
     }
-    return (unsigned int) ret;
+    return ret;
 }
 
 
@@ -70,10 +70,10 @@ binary_logarithm(const unsigned int n)
  * Returns the dimension with the maximum spread accross the set of points from 
  * left to right inclusive.
  */
-static inline unsigned int 
-get_max_spread(point_t **points, unsigned int left, unsigned int right) 
+static inline int 
+get_max_spread(point_t **points, int left, int right) 
 {
-    unsigned int i;
+    int i;
     double min_x = DBL_MAX; 
     double min_y = DBL_MAX; 
     double max_x = DBL_MIN; 
@@ -95,20 +95,20 @@ get_max_spread(point_t **points, unsigned int left, unsigned int right)
  * left, and is similarly not greater than the points to its right.
  */
 static inline void 
-distribute(point_t **a, unsigned int i, unsigned int j, unsigned int k, 
-        unsigned int d) 
+distribute(point_t **a, int i, int j, int k, 
+        int d) 
 {
-    unsigned int left = i;
-    unsigned int right = j;
-    unsigned int p = 0;
-    unsigned int pivot_index;
-    unsigned int r;
+    int left = i;
+    int right = j;
+    int p = 0;
+    int pivot_index;
+    int r;
 
     double pivot_value;
     point_t *tmp; /* required for the swap macro */
     while (k != p) {
         pivot_index = left == right ? right
-                :(unsigned int) rand() % (right - left) + left; 
+                :(int) rand() % (right - left) + left; 
         SWAP(a, left, pivot_index); 
         pivot_value = a[left]->location[d];
         p = left;   
@@ -131,13 +131,13 @@ distribute(point_t **a, unsigned int i, unsigned int j, unsigned int k,
  * Initialises the specified list_set of keys.
  */
 static int 
-list_set_init(list_set *set, unsigned int max_keys) 
+list_set_init(list_set *set, int max_keys) 
 {
     int ret = 0;
     set->list = xmalloc(max_keys * sizeof(void *));
     set->num_keys = 0u;
     set->max_keys = max_keys;
-    set->total_memory = (unsigned int) (sizeof(list_set) 
+    set->total_memory = (int) (sizeof(list_set) 
             + (max_keys * sizeof(void *)));
     return ret;
 }
@@ -204,12 +204,12 @@ list_set_clear(list_set *set)
  * into the specified kdtree_t object. 
  */
 int 
-kdtree_init(kdtree_t *self, unsigned int max_points, unsigned int bucket_max, 
-        unsigned int random_seed)
+kdtree_init(kdtree_t *self, int max_points, int bucket_max, 
+        int random_seed)
 {
     int num_buckets;
     int ret = 0;
-    unsigned int i;
+    int i;
     kd_external_node *kdenp;
     kd_internal_node *kdinp;
     list_node *lnp;
@@ -235,9 +235,9 @@ kdtree_init(kdtree_t *self, unsigned int max_points, unsigned int bucket_max,
     self->root = NULL;
     self->total_memory = sizeof(kdtree_t);
     
-    self->max_kd_external_node = (unsigned int) num_buckets;
+    self->max_kd_external_node = (int) num_buckets;
     self->current_kd_external_node = num_buckets - 1;
-    self->max_kd_internal_node = (unsigned int) num_buckets;
+    self->max_kd_internal_node = (int) num_buckets;
     self->current_kd_internal_node = num_buckets - 1;
     self->max_list_node = max_points + 2; 
     self->current_list_node = (int) self->max_list_node - 1; 
@@ -270,7 +270,7 @@ kdtree_init(kdtree_t *self, unsigned int max_points, unsigned int bucket_max,
         self->list_node_heap[i] = lnp;
         lnp++;
     }
-    self->total_memory += (unsigned int) (
+    self->total_memory += (int) (
             self->max_kd_external_node * sizeof(void *)
             + self->max_kd_external_node * sizeof(kd_external_node)
             + self->max_kd_internal_node * sizeof(void *)
@@ -286,7 +286,7 @@ kdtree_init(kdtree_t *self, unsigned int max_points, unsigned int bucket_max,
 void 
 kdtree_clear(kdtree_t *self)
 {
-    unsigned int i;
+    int i;
     kd_external_node *kdenp;
     kd_internal_node *kdinp;
     list_node *lnp;
@@ -447,7 +447,7 @@ kdtree_print_node(kdtree_t *self, void *node, int depth, int label) {
     kd_external_node *etnode;
     list_node *next_lnode;
     int i;
-    unsigned int n;
+    int n;
     for (i = 0; i < depth; i++) {
         printf("  ");
     }
@@ -487,14 +487,14 @@ kdtree_print(kdtree_t *self)
  */
 int 
 kdtree_build(kdtree_t *self, kd_internal_node *root, point_t **points, 
-        const unsigned int num_points)
+        const int num_points)
 {
     int ret = 0;
     int s = 0;
-    unsigned int left, right;
+    int left, right;
     int left_child, right_child;
-    unsigned int i;
-    unsigned int d, m;
+    int i;
+    int d, m;
     double v;
     void *node;
         
@@ -506,11 +506,11 @@ kdtree_build(kdtree_t *self, kd_internal_node *root, point_t **points,
 
     typedef struct stack_entry_t {
         kd_internal_node *parent;
-        unsigned int left;
-        unsigned int right;
+        int left;
+        int right;
         int flags;
     } stack_entry;
-    unsigned int stack_size = GSL_MAX(128, binary_logarithm(num_points) + 1);
+    int stack_size = GSL_MAX(128, binary_logarithm(num_points) + 1);
     stack_entry *stack = xmalloc(stack_size * sizeof(stack_entry));
     stack_entry *se;
     se = &stack[0];
@@ -521,8 +521,8 @@ kdtree_build(kdtree_t *self, kd_internal_node *root, point_t **points,
     while (s >= 0) {
         assert(s < (int) stack_size);
         se = &stack[s];                    
-        self->depth = (unsigned int) s > self->depth? 
-                (unsigned int) s: self->depth;
+        self->depth = (int) s > self->depth? 
+                (int) s: self->depth;
         s--;
         parent = se->parent;
         left = se->left;
@@ -620,7 +620,7 @@ kdtree_get_buckets_in_region(kdtree_t *self, double *min_bounds, double *max_bou
 {
     void *node;
     kd_internal_node *itnode;
-    unsigned int d;
+    int d;
     double v;
     void **stack = self->search_stack;
     int s = 0;
@@ -731,13 +731,13 @@ out:
  */
 static inline int 
 kdtree_external_node_insert_points(kdtree_t *self, kd_external_node *tree_node, 
-        point_t **points, unsigned int left, unsigned int right)
+        point_t **points, int left, int right)
 {
     int ret = 0;
     list_node *last = tree_node->head;
     list_node *next = kdtree_alloc_list_node(self);
     list_node *prev = NULL;
-    unsigned int i = left;
+    int i = left;
     tree_node->head = next;
     if (next == NULL) {
         ret = -OUT_OF_LIST_NODES;
@@ -781,15 +781,15 @@ kdtree_insert_point(kdtree_t *self, point_t *ind)
  */
 int 
 kdtree_insert_points(kdtree_t *self, point_t **points, 
-        unsigned int num_points)
+        int num_points)
 {
     int ret = 0;
     insertion_stack_entry *se;
-    unsigned int d;
+    int d;
     double v;
-    unsigned int pivot, left, right;
+    int pivot, left, right;
     int s = 0;
-    unsigned int j;
+    int j;
     point_t *tmp;
     void *node;
     kd_internal_node *itnode;
@@ -857,7 +857,7 @@ kdtree_copy_points(kdtree_t *self, point_t **points)
     double min_bounds[2] = {0.0, 0.0};
     double max_bounds[2] = {DBL_MAX, DBL_MAX};
     void **a;
-    unsigned int i;
+    int i;
     kd_external_node *tnode;
     list_node *next_lnode;
     ret = kdtree_get_buckets_in_region(self, min_bounds, max_bounds); 
