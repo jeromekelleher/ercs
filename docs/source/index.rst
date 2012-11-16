@@ -95,7 +95,6 @@ and they have radius ``r =  1`` and impact ``u = 0.5``.
 There can be any number of event classes happening at different 
 rates: see `Event Classes`_ for details.
 
-
 .. note:: In these examples we'll tend to 
     use rather large events, as it's useful to have examples that 
     run quickly. 
@@ -448,7 +447,7 @@ We then use the :attr:`ercs.Simulator.max_time` attribute to ensure
 that the simulation stops when ``max_t`` is reached. If lineages 
 have coalesced, then we know that their probability of identity 
 in state is no less than 10\ :sup:`-10`, and if lineages 
-have not coalescenced, then their identity is  
+have not coalesced, then their identity is  
 less than 10\ :sup:`-10` which we have decided 
 should be treated as zero.
 
@@ -566,7 +565,9 @@ or numerical methods are not available.
 :mod:`ercs` -- Module reference
 -----------------------------------
 
-.. automodule:: ercs
+The ``ercs`` module provides a convenient interface to coalescent simulations 
+for the extinction/recolonisation model, and some utilities to process 
+the resulting genealogies.
 
 
 ***********************
@@ -664,7 +665,7 @@ or numerical methods are not available.
        
        **Default value:** 0 
 
-    .. automethod:: run
+    .. automethod:: ercs.Simulator.run
 
 **********************
 Event Classes
