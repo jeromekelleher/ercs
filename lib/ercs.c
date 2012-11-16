@@ -76,7 +76,7 @@ ercs_error_str(int err)
  * Uses the specified random variate u to return the index of the specified 
  * list with the appropriate probability.
  */
-int 
+static int 
 probability_list_select(double *probabilities, const int n, 
         const double u) 
 {
@@ -106,6 +106,8 @@ probability_list_select(double *probabilities, const int n,
     return ret;
 }
 
+
+
 /*
  * Inserts a random point_t from the torus of side R into the specified 
  * double pointer.
@@ -116,6 +118,8 @@ random_point(double *p, const double R, gsl_rng *generator)
     p[0] = (double) gsl_ran_flat(generator, 0.0, R);
     p[1] = (double) gsl_ran_flat(generator, 0.0, R);
 }
+
+
 
 /* Gaussian model */
 
@@ -252,6 +256,25 @@ alloc_disc_event_class(event_class_t *event, double rate, double r, double u)
     event->parent_location = disc_parent_location;
 }
 
+/*
+ * Returns a parent chosen uniformly at random from the set 
+ * {0 ... nu - 1} \ {current_parent}. If nu == 1, then return 0.
+ */
+static int 
+ercs_choose_parent(ercs_t *self, int current_parent)
+{
+    int k = 0;
+    if (self->num_parents <= 2) {
+        k = (current_parent + 1) % self->num_parents; 
+    } else {
+        /* there is probably a better way to do this */
+        k = current_parent;
+        while (k == current_parent) {
+            k = (int) gsl_rng_uniform_int(self->rng, self->num_parents); 
+        }
+    }
+    return k; 
+}
 
 /*
  * The linear ancestry algorithm.
@@ -333,10 +356,7 @@ aa_linear_get_initial_ancestry(ercs_t *self, int value)
     return a;
 }
 
-/*
- * TODO tidy this up.
- */
-int 
+static int 
 aa_linear_coalesce(ercs_t *self, lineage_t **children, int num_children, 
         double t, lineage_t **parents, int *s_p)
 {
@@ -361,10 +381,7 @@ aa_linear_coalesce(ercs_t *self, lineage_t **children, int num_children,
         }
         parents[k]->ancestry = a; 
     }
-    //printf("%d children:\n", num_children);
     for (j = 0; j < num_children; j++) {
-        //printf("\t");
-        //aa_linear_print_ancestry(self, children[j]->ancestry);
         a = (int *) children[j]->ancestry;
         k = gsl_rng_uniform_int(self->rng, nu);
         for (l = 0; l < m; l++) { 
@@ -390,12 +407,8 @@ aa_linear_coalesce(ercs_t *self, lineage_t **children, int num_children,
                     p[l] = h;
                 }
             }
-
             if (gsl_rng_uniform(self->rng) < rho[l]) {
-                // choose a different parent;
-                // FIXME
-                k++;
-                k = k % nu;
+                k = ercs_choose_parent(self, k);
             }
         }
         /* we're finished with this child's ancestry now */
@@ -537,7 +550,7 @@ ercs_sanity_check(ercs_t *self)
             goto out;
         }
     }
-    if (self->num_parents <= 0 || self->num_parents > 2) { /* FIXME */
+    if (self->num_parents <= 0) {
         ret = -ILLEGAL_ARGUMENT;
         goto out;
     }

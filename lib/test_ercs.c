@@ -29,12 +29,12 @@
 
 
 static ercs_t *
-alloc_ercs(double L, int num_points, int num_loci) 
+alloc_ercs(double L, int num_points, int num_loci, int num_parents) 
 {
     int j;
     ercs_t *sim= xcalloc(1, sizeof(ercs_t));
     sim->num_loci = num_loci;
-    sim->num_parents = 2;
+    sim->num_parents = num_parents;
     sim->num_event_classes = 1;
     sim->kdtree_bucket_size = 1;
     sim->max_lineages = 1000; 
@@ -86,7 +86,7 @@ compare_histories(ercs_t *sim1, ercs_t *sim2)
                 goto out;
             }
             if (sim1->tau[l][j] != sim2->tau[l][j]) {
-                ret = -576;
+                ret = -577;
                 goto out;
             }
         }
@@ -96,14 +96,70 @@ out:
     return ret;
 }
 
+/*
+ * Checks the history of the specified simulator to see if it is 
+ * consistent.
+ */
 static int 
-test_ercs_size(double L, int num_points, int m)
+check_history(ercs_t *sim)
+{
+    int ret = 0; 
+    int l, j, k, sample_mrca;
+    int n = sim->sample_size; 
+    int *pi;
+    double *tau;
+    double sample_ct, max_ct;
+    max_ct = -1.0;
+    for (l = 0; l < sim->num_loci; l++) {
+        pi = sim->pi[l];
+        tau = sim->tau[l];
+        sample_mrca = 2 * n - 1;
+        while (tau[sample_mrca] == 0.0) {
+            sample_mrca--;
+        }
+        if (sample_mrca <= n) {
+            ret = -600;
+            goto out;
+        }
+        sample_ct = tau[sample_mrca];
+        if (sample_ct > max_ct) {
+            max_ct = sample_ct;
+        }
+        for (j = 1; j <=  n; j++) {
+            if (tau[j] != 0.0) {
+                ret = -610;
+                goto out;
+            }
+            /* trace the path of every lineage in the sample to root */
+            k = j;
+            while (pi[k] != 0) {
+                k = pi[k];
+            }
+            if (k != sample_mrca) {
+                ret = -611;
+                goto out;
+            }
+        }
+    }
+    if (max_ct != sim->time) {
+        ret = -650;
+        goto out;
+
+    }
+
+out:
+    return ret;
+}
+
+
+static int 
+test_ercs_size(double L, int num_points, int m, int nu)
 {
     int ret = 0;
     int not_done;
     int num_events;
-    ercs_t *sim1 = alloc_ercs(L, num_points, m);
-    ercs_t *sim2 = alloc_ercs(L, num_points, m);
+    ercs_t *sim1 = alloc_ercs(L, num_points, m, nu);
+    ercs_t *sim2 = alloc_ercs(L, num_points, m, nu);
     ret = ercs_initialise(sim1); 
     ERCS_ERROR_CHECK(ret, out);
     ret = ercs_initialise(sim2); 
@@ -119,6 +175,8 @@ test_ercs_size(double L, int num_points, int m)
         num_events++;
     }
     ret = compare_histories(sim1, sim2);
+    ERCS_ERROR_CHECK(ret, out);
+    ret = check_history(sim1);
     free_ercs(sim1);
     free_ercs(sim2);
 out:
@@ -126,29 +184,27 @@ out:
 }
 
 
-
-
 static int 
 test_ercs(void)
 {
     int ret = 0;
-    size_t j, k, n, m;
+    size_t j, k, n, m, nu;
     double torus_sizes[] = {1.9, 0.2, 50.3, 123.22, 1111.1};
     int num_points[] = {2, 11, 50, 212, 333, 515};
     printf("\trunning ercs tests");
     for (j = 0; j < sizeof(torus_sizes) / sizeof(double); j++) {
         for (k = 0; k < sizeof(num_points) / sizeof(int); k++) {
             for (m = 1; m < 4; m++) {
-                printf(".");
-                fflush(stdout);
-                n = num_points[k]; 
-                ret = test_ercs_size(torus_sizes[j], n, m);
-                ERCS_ERROR_CHECK(ret, out);
+                for (nu = 1; nu < 5; nu++) {
+                    printf(".");
+                    fflush(stdout);
+                    n = num_points[k]; 
+                    ret = test_ercs_size(torus_sizes[j], n, m, nu);
+                    ERCS_ERROR_CHECK(ret, out);
+                }
             }
         }
-    }  
-    printf("\n");
-
+    } 
 out:
     return ret;
 

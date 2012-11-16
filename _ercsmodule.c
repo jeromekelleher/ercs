@@ -129,7 +129,7 @@ pyercs_parse_recombination(PyObject *py_recombination, ercs_t *sim)
     PyObject *item;
     size = PyList_Size(py_recombination);
     sim->num_loci = size + 1; 
-    sim->recombination_probabilities = xcalloc(size + 1, sizeof(double));
+    sim->recombination_probabilities = xcalloc(self->num_loci, sizeof(double));
     for (j = 0; j < size; j++) {
         item = PyList_GetItem(py_recombination, j);
         if (!PyNumber_Check(item)) {
