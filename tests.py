@@ -212,7 +212,19 @@ class TestBadArguments(TestLowLevelSimulate):
         self.assertRaises(_ercs.InputError, self.simulate)
         self._torus_diameter = -1 
         self.assertRaises(_ercs.InputError, self.simulate)
-        
+
+    def test_max_lineages(self):
+        self._max_lineages = 0
+        self.assertRaises(_ercs.InputError, self.simulate)
+        self._max_lineages = -1 
+        self.assertRaises(_ercs.InputError, self.simulate)
+        self._max_lineages = 1 
+        self.assertRaises(_ercs.InputError, self.simulate)
+
+    def test_max_kdtree_insertions(self):
+        self._max_kdtree_insertions = -1
+        self.assertRaises(_ercs.InputError, self.simulate)
+
 
 class TestOutput(TestLowLevelSimulate):
     """

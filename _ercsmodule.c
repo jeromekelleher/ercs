@@ -47,7 +47,6 @@ pyercs_check_parameters(ercs_t *sim)
         PyErr_SetString(ErcsInputError, "torus_diameter must be >= 0.0"); 
         goto out;
     } 
-    
     if (sim->num_parents <= 0) {
         PyErr_SetString(ErcsInputError, "num_parents must be > 0"); 
         goto out;
@@ -62,8 +61,14 @@ pyercs_check_parameters(ercs_t *sim)
                 "kdtree_bucket_size must be a power of 2"); 
         goto out;
     }
-
-
+    if (sim->max_kdtree_insertions < 0) {
+        PyErr_SetString(ErcsInputError, "max_kdtree_insertions must be >= 0");
+        goto out;
+    }
+    if (sim->max_lineages < 2) {
+        PyErr_SetString(ErcsInputError, "max_lineages must be >= 2");
+        goto out;
+    }
 out:   
     return PyErr_Occurred() == NULL;
 }
