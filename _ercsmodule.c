@@ -36,6 +36,23 @@ static PyObject *ErcsInputError;
 static PyObject *ErcsLibraryError;
 
 static int
+pyercs_check_parameters(ercs_t *sim)
+{
+    if (sim->torus_diameter <= 0.0) {
+        PyErr_SetString(ErcsInputError, "torus_diameter must be >= 0.0"); 
+        goto out;
+    }
+    if (sim->num_parents <= 0) {
+        PyErr_SetString(ErcsInputError, "num_parents be >= 0"); 
+        goto out;
+    }
+    
+
+out:   
+    return PyErr_Occurred() == NULL;
+}
+
+static int
 pyercs_parse_sample(PyObject *py_sample, ercs_t *sim)
 {
     int size;
@@ -267,6 +284,9 @@ pyercs_simulate(PyObject *self, PyObject *args)
                 &sim->max_time,
                 &ancestry_algorithm /* unused */)) {
         goto out; 
+    }
+    if (!pyercs_check_parameters(sim)) {
+        goto out;
     }
     if (!pyercs_parse_sample(py_sample, sim)) {
         goto out;

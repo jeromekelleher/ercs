@@ -201,6 +201,19 @@ class TestBadArguments(TestLowLevelSimulate):
         self._max_time = -1
         self.assertRaises(_ercs.LibraryError, self.simulate)
 
+    
+    def test_num_parents(self):
+        self._num_parents = 0
+        self.assertRaises(_ercs.InputError, self.simulate)
+        self._num_parents = -1 
+        self.assertRaises(_ercs.InputError, self.simulate)
+
+    def test_torus_diameter(self):
+        self._torus_diameter = 0
+        self.assertRaises(_ercs.InputError, self.simulate)
+        self._torus_diameter = -1 
+        self.assertRaises(_ercs.InputError, self.simulate)
+        
 
 class TestOutput(TestLowLevelSimulate):
     """
