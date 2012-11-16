@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Extinction/recolonisation coalescent simulator &mdash; ercs 1.0.1a1 documentation</title>
+    <title>Extinction/recolonisation coalescent simulator &mdash; ercs 1.0.1b1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.0.1a1',
+        VERSION:     '1.0.1b1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="ercs 1.0.1a1 documentation" href="#" /> 
+    <link rel="top" title="ercs 1.0.1b1 documentation" href="#" /> 
   </head>
   <body>
     <div class="related">
@@ -37,7 +37,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="#">ercs 1.0.1a1 documentation</a> &raquo;</li> 
+        <li><a href="#">ercs 1.0.1b1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -71,7 +71,7 @@
 <li><a class="reference internal" href="#utilities" id="id25">Utilities</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id13" id="id26"><tt class="xref py py-mod docutils literal"><span class="pre">_ercs</span></tt> &#8211; Module reference</a></li>
+<li><a class="reference internal" href="#module-_ercs" id="id26"><a class="reference internal" href="#module-_ercs" title="_ercs"><tt class="xref py py-mod docutils literal"><span class="pre">_ercs</span></tt></a> &#8211; Module reference</a></li>
 <li><a class="reference internal" href="#bibliography" id="id27">Bibliography</a></li>
 </ul>
 </li>
@@ -319,10 +319,12 @@ recombination rates are specified by
 describing the probability that two adjacent loci <tt class="docutils literal"><span class="pre">l</span></tt>
 and <tt class="docutils literal"><span class="pre">l</span> <span class="pre">+</span> <span class="pre">1</span></tt> descend from different parents at an event. Therefore, in
 a system of <tt class="docutils literal"><span class="pre">m</span></tt> loci, we need a list of <tt class="docutils literal"><span class="pre">m</span> <span class="pre">-</span> <span class="pre">1</span></tt> recombination
-probabilities to describe the system in a general way.</p>
+probabilities to describe the system in a general way. The
+probabilities of recombination between different pairs of
+adjacent loci are independent, and so there is no interference in the system.</p>
 <p>The <a class="reference internal" href="#ercs.Simulator.recombination_probabilities" title="ercs.Simulator.recombination_probabilities"><tt class="xref py py-attr docutils literal"><span class="pre">ercs.Simulator.recombination_probabilities</span></tt></a> attribute is used
 to describe both the number of loci and the recombination rates between them.
-By default, this attribute is set to the empty list, specifying a single
+By default, this attribute is set to the empty list, giving a single
 locus system. In the following example we set up a three locus system
 in which we calculate the coalescence time at each locus:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">multi_locus_example</span><span class="p">(</span><span class="n">seed</span><span class="p">):</span>
@@ -484,7 +486,7 @@ to these values:</p>
 that the simulation stops when <tt class="docutils literal"><span class="pre">max_t</span></tt> is reached. If lineages
 have coalesced, then we know that their probability of identity
 in state is no less than 10<sup>-10</sup>, and if lineages
-have not coalescenced, then their identity is
+have not coalesced, then their identity is
 less than 10<sup>-10</sup> which we have decided
 should be treated as zero.</p>
 <p>The <tt class="docutils literal"><span class="pre">setup</span></tt> method implements these ideas to set the
@@ -595,7 +597,9 @@ or numerical methods are not available.</p>
 </div>
 <div class="section" id="module-ercs">
 <span id="ercs-module-reference"></span><h2><a class="toc-backref" href="#id22"><a class="reference internal" href="#module-ercs" title="ercs"><tt class="xref py py-mod docutils literal"><span class="pre">ercs</span></tt></a> &#8211; Module reference</a><a class="headerlink" href="#module-ercs" title="Permalink to this headline">¶</a></h2>
-<p>Simulate the coalescent in the extinction recolonisation model.</p>
+<p>The <tt class="docutils literal"><span class="pre">ercs</span></tt> module provides a convenient interface to coalescent simulations
+for the extinction/recolonisation model, and some utilities to process
+the resulting genealogies.</p>
 <div class="section" id="ercs-simulator">
 <h3><a class="toc-backref" href="#id23"><a class="reference internal" href="#ercs.Simulator" title="ercs.Simulator"><tt class="xref py py-class docutils literal"><span class="pre">ercs.Simulator</span></tt></a></a><a class="headerlink" href="#ercs-simulator" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
@@ -840,9 +844,9 @@ or 0 if the nodes belong to different trees.</p>
 
 </div>
 </div>
-<div class="section" id="id13">
-<h2><a class="toc-backref" href="#id26"><tt class="xref py py-mod docutils literal"><span class="pre">_ercs</span></tt> &#8211; Module reference</a><a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
-<p>The <a class="reference internal" href="#module-ercs" title="ercs"><tt class="xref py py-mod docutils literal"><span class="pre">ercs</span></tt></a> module delegates the majority of its work to the low-level <tt class="xref py py-mod docutils literal"><span class="pre">_ercs</span></tt>
+<div class="section" id="module-_ercs">
+<span id="id13"></span><h2><a class="toc-backref" href="#id26"><a class="reference internal" href="#module-_ercs" title="_ercs"><tt class="xref py py-mod docutils literal"><span class="pre">_ercs</span></tt></a> &#8211; Module reference</a><a class="headerlink" href="#module-_ercs" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="#module-ercs" title="ercs"><tt class="xref py py-mod docutils literal"><span class="pre">ercs</span></tt></a> module delegates the majority of its work to the low-level <a class="reference internal" href="#module-_ercs" title="_ercs"><tt class="xref py py-mod docutils literal"><span class="pre">_ercs</span></tt></a>
 extension module, which is written in C. It is not recommended to use this
 module directly&#8212;the <a class="reference internal" href="#module-ercs" title="ercs"><tt class="xref py py-mod docutils literal"><span class="pre">ercs</span></tt></a> module provides all of the functionality with a
 much more straightforward interface. In the interest of completeness,
@@ -983,7 +987,7 @@ Programming</em>, 2011.</td></tr>
 <li><a class="reference internal" href="#utilities">Utilities</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id13"><tt class="docutils literal"><span class="pre">_ercs</span></tt> &#8211; Module reference</a></li>
+<li><a class="reference internal" href="#module-_ercs"><tt class="docutils literal"><span class="pre">_ercs</span></tt> &#8211; Module reference</a></li>
 <li><a class="reference internal" href="#bibliography">Bibliography</a></li>
 </ul>
 </li>
@@ -1021,7 +1025,7 @@ Programming</em>, 2011.</td></tr>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="#">ercs 1.0.1a1 documentation</a> &raquo;</li> 
+        <li><a href="#">ercs 1.0.1b1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
