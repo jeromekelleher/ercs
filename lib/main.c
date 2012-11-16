@@ -17,10 +17,9 @@
 ** along with ercs.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #include "ercs.h"
 
+#include <limits.h>
 #include <string.h>
 #include <stdarg.h>
 #include <libconfig.h>
@@ -35,7 +34,6 @@ typedef int libconfig_int;
 #else
 typedef long libconfig_int;
 #endif
-
 
 
 static void 
@@ -264,7 +262,7 @@ main(int argc, char** argv)
     ret = ercs_initialise(self);
     ERCS_ERROR_CHECK(ret, out); 
     while (not_done) {
-        ret = ercs_simulate(self, 1<<31);
+        ret = ercs_simulate(self, UINT_MAX);
         ERCS_ERROR_CHECK(ret, out);
         not_done = ret == ERCS_SIM_NOT_DONE;
     }

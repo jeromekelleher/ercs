@@ -687,11 +687,10 @@ ercs_free(ercs_t *self)
  * the simulation has completed.
  */
 int 
-ercs_simulate(ercs_t *self, int num_events)
+ercs_simulate(ercs_t *self, unsigned int num_events)
 {
     int ret = 0;
-    int j, k;
-    int num_children, num_inserted;
+    int j, k, num_children, num_inserted;
     double L = self->torus_diameter;
     double z[2] = {0.0, 0.0};
     double d2, u;
@@ -702,7 +701,7 @@ ercs_simulate(ercs_t *self, int num_events)
     lineage_t **children = self->children_buffer; 
     lineage_t *lin;
     event_class_t *event;
-    int events = 0;
+    unsigned int events = 0;
     while (self->kappa > self->num_loci && self->time < self->max_time && 
             events < num_events) {
         events++;

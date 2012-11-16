@@ -324,7 +324,7 @@ pyercs_simulate(PyObject *self, PyObject *args)
     ERCS_ERROR_CHECK(ercs_ret, cleanup);
     not_done = 1; 
     while (not_done) {
-        ercs_ret = ercs_simulate(sim, 1<<20);
+        ercs_ret = ercs_simulate(sim, 1u<<20);
         ERCS_ERROR_CHECK(ercs_ret, cleanup);
         not_done = ercs_ret == ERCS_SIM_NOT_DONE;
         if (PyErr_CheckSignals() < 0) {

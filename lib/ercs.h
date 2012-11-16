@@ -127,7 +127,7 @@ void alloc_gaussian_event_class(event_class_t *event, double, double, double,
 void alloc_disc_event_class(event_class_t *, double, double, double);
 
 int ercs_initialise(ercs_t *);
-int ercs_simulate(ercs_t *, int);
+int ercs_simulate(ercs_t *, unsigned int);
 void ercs_print_state(ercs_t *);
 void ercs_free(ercs_t *);
 const char *ercs_error_str(int);
