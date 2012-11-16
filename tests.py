@@ -183,7 +183,49 @@ class TestEventClassError(TestLowLevelSimulate):
             self._event_classes = good_values + [error]
             random.shuffle(self._event_classes)
             self.assertRaises(_ercs.InputError, self.simulate)
-            
+           
+class TestBadArguments(TestLowLevelSimulate):
+    """
+    Tests to see if bad arguments for the lesser used parameters to 
+    simulate throw an error as required.
+    """
+    def test_kdtree_bucket_size(self):
+        self._kdtree_bucket_size = 0
+        self.assertRaises(_ercs.InputError, self.simulate)
+        self._kdtree_bucket_size = 3
+        self.assertRaises(_ercs.InputError, self.simulate)
+        self._kdtree_bucket_size = -1 
+        self.assertRaises(_ercs.InputError, self.simulate)
+
+    def test_max_time(self):
+        self._max_time = -1
+        self.assertRaises(_ercs.InputError, self.simulate)
+    
+    def test_num_parents(self):
+        self._num_parents = 0
+        self.assertRaises(_ercs.InputError, self.simulate)
+        self._num_parents = -1 
+        self.assertRaises(_ercs.InputError, self.simulate)
+
+    def test_torus_diameter(self):
+        self._torus_diameter = 0
+        self.assertRaises(_ercs.InputError, self.simulate)
+        self._torus_diameter = -1 
+        self.assertRaises(_ercs.InputError, self.simulate)
+
+    def test_max_lineages(self):
+        self._max_lineages = 0
+        self.assertRaises(_ercs.InputError, self.simulate)
+        self._max_lineages = -1 
+        self.assertRaises(_ercs.InputError, self.simulate)
+        self._max_lineages = 1 
+        self.assertRaises(_ercs.InputError, self.simulate)
+
+    def test_max_kdtree_insertions(self):
+        self._max_kdtree_insertions = -1
+        self.assertRaises(_ercs.InputError, self.simulate)
+
+
 class TestOutput(TestLowLevelSimulate):
     """
     Tests the output of simulate to see if it has the right basic 

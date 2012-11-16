@@ -42,15 +42,15 @@ typedef struct list_node_t {
 } list_node;
 
 typedef struct list_set_t {
-    unsigned int num_keys;
-    unsigned int max_keys;
+    int num_keys;
+    int max_keys;
     void **list;
-    unsigned int total_memory;
+    int total_memory;
 } list_set;
 
 typedef struct kd_internal_node_t {
     char flags;
-    unsigned int cut_dimension;
+    int cut_dimension;
     double cut_value;
     void *left_child;
     void *right_child;
@@ -58,22 +58,22 @@ typedef struct kd_internal_node_t {
 
 typedef struct kd_external_node_t {
     char flags;
-    unsigned int num_points;
+    int num_points;
     list_node *head;
 } kd_external_node;
 
 typedef struct insertion_stack_entry_t {
     void *node;
-    unsigned int left;
-    unsigned int right;
+    int left;
+    int right;
 } insertion_stack_entry;
 
 typedef struct {
     void *root;
-    unsigned int max_points;
-    unsigned int bucket_max;
-    unsigned int depth;
-    unsigned int total_memory;
+    int max_points;
+    int bucket_max;
+    int depth;
+    int total_memory;
     
     void **search_stack;
     insertion_stack_entry *insertion_stack;
@@ -81,17 +81,17 @@ typedef struct {
 
     /* Heaps for allocated memory */
     int current_list_node;
-    unsigned int max_list_node;
+    int max_list_node;
     list_node **list_node_heap;
     void *list_node_mem;
 
     int current_kd_external_node;
-    unsigned int max_kd_external_node;
+    int max_kd_external_node;
     kd_external_node **kd_external_node_heap;
     void *kd_external_node_mem;
     
     int current_kd_internal_node;
-    unsigned int max_kd_internal_node;
+    int max_kd_internal_node;
     kd_internal_node **kd_internal_node_heap;
     void *kd_internal_node_mem;
 } kdtree_t;
@@ -109,13 +109,13 @@ typedef struct {
 } kri_t;
 
 
-int kdtree_init(kdtree_t *tree, unsigned int max_points, unsigned int bucket_max, 
-        unsigned int random_seed);
+int kdtree_init(kdtree_t *tree, int max_points, int bucket_max, 
+        int random_seed);
 void kdtree_free(kdtree_t *tree); 
 void kdtree_clear(kdtree_t *tree); 
 int kdtree_build(kdtree_t *tree, kd_internal_node *root, point_t **points, 
-        const unsigned int num_points); 
-int kdtree_insert_points(kdtree_t *tree, point_t **points, unsigned int num_points);
+        const int num_points); 
+int kdtree_insert_points(kdtree_t *tree, point_t **points, int num_points);
 int kdtree_insert_point(kdtree_t *tree, point_t *ind);
 int kdtree_copy_points(kdtree_t *tree, point_t **points);
 int kdtree_get_torus_region_iterator(kdtree_t *tree,  const double *p, const double r, 

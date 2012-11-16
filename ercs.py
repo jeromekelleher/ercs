@@ -21,7 +21,7 @@ Simulate the coalescent in the extinction recolonisation model.
 """
 
 # Must be single quotes for parsing in setup.py
-__version__ = '1.0.1a1'
+__version__ = '1.0.1a2'
 
 import math
 import _ercs

@@ -88,13 +88,13 @@ test_torus_distance_known(void)
     int ret = 0;
     double p1[2] = {0.0, 0.0};
     double p2[2] = {10.0, 10.0};
-    unsigned int num_tests = 13;
+    int num_tests = 13;
     double R[13] = {10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0,
             20.0, 21.0, 22.0};
     double result[13] = {0.0, 2.0, 8.0, 18.0, 32.0, 50.0, 72.0, 98.0, 128.0, 
             162.0, 200.0, 200.0, 200.0};
     double d21, d22; 
-    unsigned int i;
+    int i;
 
     for (i = 0; i < num_tests; i++) {
         d21 = torus_squared_distance(p1, p2, R[i]);
@@ -123,10 +123,10 @@ out:
 }
 
 static int 
-test_grid(double *p1, double R, unsigned int grid_size)
+test_grid(double *p1, double R, int grid_size)
 {
     int ret = 0;
-    unsigned int i, j;
+    int i, j;
     double d21, d22;
     double p2[2] = {0.0, 0.0};
     for (i = 0; i < grid_size; i++) {
@@ -156,7 +156,7 @@ test_torus_distance_systematic(void)
     int ret = 0;
     double p1[2] = {0.0, 0.0};
     double R = 8;
-    unsigned int grid_size = 32;
+    int grid_size = 32;
     test_grid(p1, R, grid_size);    
     p1[0] = 4;
     p1[1] = 4;

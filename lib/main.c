@@ -17,10 +17,14 @@
 ** along with ercs.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+/* 
+ * Simple command line front end for the ercs code. This is intended 
+ * for development purposes only!
+ */
 
 #include "ercs.h"
 
+#include <limits.h>
 #include <string.h>
 #include <stdarg.h>
 #include <libconfig.h>
@@ -35,7 +39,6 @@ typedef int libconfig_int;
 #else
 typedef long libconfig_int;
 #endif
-
 
 
 static void 
@@ -53,8 +56,8 @@ fatal_error(const char *msg, ...)
 static void
 read_recombination_probabilities(ercs_t *self, config_t *config)
 {
-    unsigned int j;
-    unsigned int m;
+    int j;
+    int m;
     const char *key = "recombination_probabilities";
     config_setting_t *s;
     config_setting_t *setting = config_lookup(config, key); 
@@ -84,7 +87,7 @@ read_recombination_probabilities(ercs_t *self, config_t *config)
 static void
 read_sample(ercs_t *self, config_t *config)
 {
-    unsigned int j;
+    int j;
     config_setting_t *s;
     config_setting_t *setting = config_lookup(config, "sample"); 
     if (setting == NULL) {
@@ -119,7 +122,7 @@ read_events(ercs_t *self, config_t *config)
 {
     double u, r, rate, theta, alpha; 
     int j;
-    unsigned int e;
+    int e;
     const char *type;
     config_setting_t *s, *t;
     config_setting_t *setting = config_lookup(config, "events"); 
@@ -264,7 +267,7 @@ main(int argc, char** argv)
     ret = ercs_initialise(self);
     ERCS_ERROR_CHECK(ret, out); 
     while (not_done) {
-        ret = ercs_simulate(self, 1<<31);
+        ret = ercs_simulate(self, UINT_MAX);
         ERCS_ERROR_CHECK(ret, out);
         not_done = ret == ERCS_SIM_NOT_DONE;
     }

@@ -36,13 +36,51 @@ static PyObject *ErcsInputError;
 static PyObject *ErcsLibraryError;
 
 static int
+pyercs_check_parameters(ercs_t *sim)
+{
+    int v;
+    if (sim->torus_diameter <= 0.0) {
+        PyErr_SetString(ErcsInputError, "torus_diameter must be > 0.0"); 
+        goto out;
+    }
+    if (sim->max_time < 0.0) {
+        PyErr_SetString(ErcsInputError, "torus_diameter must be >= 0.0"); 
+        goto out;
+    } 
+    if (sim->num_parents <= 0) {
+        PyErr_SetString(ErcsInputError, "num_parents must be > 0"); 
+        goto out;
+    }
+    v = sim->kdtree_bucket_size;
+    if (v <= 0) {
+        PyErr_SetString(ErcsInputError, "kdtree_bucket_size must be > 0"); 
+        goto out;
+    }
+    if ((v & (v - 1)) != 0) {
+        PyErr_SetString(ErcsInputError, 
+                "kdtree_bucket_size must be a power of 2"); 
+        goto out;
+    }
+    if (sim->max_kdtree_insertions < 0) {
+        PyErr_SetString(ErcsInputError, "max_kdtree_insertions must be >= 0");
+        goto out;
+    }
+    if (sim->max_lineages < 2) {
+        PyErr_SetString(ErcsInputError, "max_lineages must be >= 2");
+        goto out;
+    }
+out:   
+    return PyErr_Occurred() == NULL;
+}
+
+static int
 pyercs_parse_sample(PyObject *py_sample, ercs_t *sim)
 {
     int size;
-    unsigned int j, k;
+    int j, k;
     double v;
     PyObject *item, *value;    
-    unsigned int n = PyList_Size(py_sample);
+    int n = PyList_Size(py_sample);
     if (n == 0) {
         PyErr_SetString(ErcsInputError, "Empty sample"); 
         goto out;
@@ -85,13 +123,13 @@ out:
 static int  
 pyercs_parse_recombination(PyObject *py_recombination, ercs_t *sim) 
 {
-    unsigned int j;
-    unsigned int size;
+    int j;
+    int size;
     double v;
     PyObject *item;
     size = PyList_Size(py_recombination);
     sim->num_loci = size + 1; 
-    sim->recombination_probabilities = xcalloc(size + 1, sizeof(double));
+    sim->recombination_probabilities = xcalloc(sim->num_loci, sizeof(double));
     for (j = 0; j < size; j++) {
         item = PyList_GetItem(py_recombination, j);
         if (!PyNumber_Check(item)) {
@@ -138,7 +176,7 @@ out:
 static int
 pyercs_parse_events(PyObject *py_events, ercs_t *sim) 
 {
-    unsigned int j, size;
+    int j, size;
     long type;
     double rate, u, r, alpha, theta;
     PyObject *item, *value;
@@ -215,7 +253,7 @@ out:
 "   :param torus_diameter: The diameter of the torus\n"\
 "   :type torus_diameter: double\n"\
 "   :param num_parents: The number of parents in each event\n"\
-"   :type num_parents: unsigned integer\n"\
+"   :type num_parents: integer\n"\
 "   :param sample: The (zero indexed) sample of 2D locations\n"\
 "   :type sample: list of numeric (x, y) tuples\n"\
 "   :param event_classes: The list of event classes and their rates\n"\
@@ -224,17 +262,17 @@ out:
 " adjacent loci\n"\
 "   :type recombination_probabilities: list of doubles\n"\
 "   :param kdtree_bucket_size: The number of points in a kdtree bucket\n"\
-"   :type kdtree_bucket_size: unsigned integer\n"\
+"   :type kdtree_bucket_size: integer\n"\
 "   :param max_kdtree_insertions: The maximum number of insertions before "\
 " the kdtree is rebuilt; if 0, the kdtree is never rebuilt\n"\
-"   :type max_kdtree_insertions: unsigned integer\n"\
+"   :type max_kdtree_insertions: integer\n"\
 "   :param max_lineages: The maximum number of extant lineages\n"\
-"   :type max_lineages: unsigned integer\n"\
+"   :type max_lineages: integer\n"\
 "   :param max_time: the maximum time we simulate back into the past;"\
 " if 0.0, simulate until coalescence\n"\
 "   :type max_time: double\n"\
 "   :param ancestry_algorithm: currently unused\n"\
-"   :type ancestry_algorithm: unsigned int\n"\
+"   :type ancestry_algorithm: int\n"\
 "   :return: the simulated history of the sample, (pi, tau).\n"\
 "   :rtype: a tuple (pi, tau); pi is a list of lists of integers, and "\
 "        tau is a list of lists of doubles\n"\
@@ -248,13 +286,13 @@ pyercs_simulate(PyObject *self, PyObject *args)
     PyObject *ret = NULL;
     PyObject *pi = NULL;
     PyObject *tau = NULL;
-    unsigned int j, l, n, ancestry_algorithm;
+    int j, l, n, ancestry_algorithm;
     PyObject *py_sample, *py_recombination, *py_events, *pi_locus, *tau_locus;
     ercs_t *sim = xcalloc(1, sizeof(ercs_t));
     sim->sample = NULL;
     sim->event_classes = NULL;
     sim->recombination_probabilities = NULL;
-    if (!PyArg_ParseTuple(args, "ldIO!O!O!IIIdI", 
+    if (!PyArg_ParseTuple(args, "ldiO!O!O!iiidi", 
                 &sim->random_seed,
                 &sim->torus_diameter,
                 &sim->num_parents,
@@ -267,6 +305,9 @@ pyercs_simulate(PyObject *self, PyObject *args)
                 &sim->max_time,
                 &ancestry_algorithm /* unused */)) {
         goto out; 
+    }
+    if (!pyercs_check_parameters(sim)) {
+        goto out;
     }
     if (!pyercs_parse_sample(py_sample, sim)) {
         goto out;
@@ -282,13 +323,13 @@ pyercs_simulate(PyObject *self, PyObject *args)
         sim->max_time = DBL_MAX;
     }
     if (sim->max_kdtree_insertions == 0) {
-        sim->max_kdtree_insertions = UINT_MAX;
+        sim->max_kdtree_insertions = INT_MAX;
     }
     ercs_ret = ercs_initialise(sim);
     ERCS_ERROR_CHECK(ercs_ret, cleanup);
     not_done = 1; 
     while (not_done) {
-        ercs_ret = ercs_simulate(sim, 1<<20);
+        ercs_ret = ercs_simulate(sim, 1u<<20);
         ERCS_ERROR_CHECK(ercs_ret, cleanup);
         not_done = ercs_ret == ERCS_SIM_NOT_DONE;
         if (PyErr_CheckSignals() < 0) {

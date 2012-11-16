@@ -76,13 +76,13 @@ ercs_error_str(int err)
  * Uses the specified random variate u to return the index of the specified 
  * list with the appropriate probability.
  */
-int 
-probability_list_select(double *probabilities, const unsigned int n, 
+static int 
+probability_list_select(double *probabilities, const int n, 
         const double u) 
 {
     int ret = 0;
     int x;
-    unsigned int i;
+    int i;
     double lhs, rhs;
     assert(n > 0);
     if (n == 1) {
@@ -252,6 +252,25 @@ alloc_disc_event_class(event_class_t *event, double rate, double r, double u)
     event->parent_location = disc_parent_location;
 }
 
+/*
+ * Returns a parent chosen uniformly at random from the set 
+ * {0 ... nu - 1} \ {current_parent}. If nu == 1, then return 0.
+ */
+static int 
+ercs_choose_parent(ercs_t *self, int current_parent)
+{
+    int k = 0;
+    if (self->num_parents <= 2) {
+        k = (current_parent + 1) % self->num_parents; 
+    } else {
+        /* there is probably a better way to do this */
+        k = current_parent;
+        while (k == current_parent) {
+            k = (int) gsl_rng_uniform_int(self->rng, self->num_parents); 
+        }
+    }
+    return k; 
+}
 
 /*
  * The linear ancestry algorithm.
@@ -265,7 +284,7 @@ aa_linear_print_state(ercs_t *self)
 static void
 aa_linear_print_ancestry(ercs_t *self, void *ap)
 {
-    unsigned int j;
+    int j;
     int *a = (int *) ap;
     for (j = 0; j < self->num_loci; j++) {
         printf("%3d ", a[j]); 
@@ -278,9 +297,9 @@ static void *
 aa_linear_initialise(ercs_t *self)
 {
     aa_linear_t *aas = xmalloc(sizeof(aa_linear_t));
-    unsigned int j;
-    unsigned int m = self->num_loci;
-    unsigned int nu = self->num_parents;
+    int j;
+    int m = self->num_loci;
+    int nu = self->num_parents;
     /* Allocate the ancestry */
     aas->ancestry_memory = xmalloc(m * self->max_lineages * sizeof(int));
     aas->ancestry_heap = xmalloc(self->max_lineages * sizeof(int *));
@@ -288,7 +307,7 @@ aa_linear_initialise(ercs_t *self)
         aas->ancestry_heap[j] = &aas->ancestry_memory[j * m]; 
     }
     aas->ancestry_heap_top = (int) self->max_lineages - 1;
-    aas->coalesced_loci = xmalloc(nu * m * sizeof(unsigned int));
+    aas->coalesced_loci = xmalloc(nu * m * sizeof(int));
     return (void *) aas;
 }
 
@@ -322,7 +341,7 @@ aa_linear_alloc_ancestry(aa_linear_t *aas)
 void *
 aa_linear_get_initial_ancestry(ercs_t *self, int value)
 {
-    unsigned int l;
+    int l;
     aa_linear_t *aas = (aa_linear_t *) self->aa_state; 
     int *a = aa_linear_alloc_ancestry(aas);
     if (a != NULL) {
@@ -333,21 +352,18 @@ aa_linear_get_initial_ancestry(ercs_t *self, int value)
     return a;
 }
 
-/*
- * TODO tidy this up.
- */
-int 
-aa_linear_coalesce(ercs_t *self, lineage_t **children, unsigned int num_children, 
-        double t, lineage_t **parents, unsigned int *s_p)
+static int 
+aa_linear_coalesce(ercs_t *self, lineage_t **children, int num_children, 
+        double t, lineage_t **parents, int *s_p)
 {
     int ret = 0;
     aa_linear_t *aas = (aa_linear_t *) self->aa_state; 
-    unsigned int s = 0;
-    unsigned int m = self->num_loci;
-    unsigned int nu = self->num_parents;
+    int s = 0;
+    int m = self->num_loci;
+    int nu = self->num_parents;
     double * rho = self->recombination_probabilities;
-    unsigned int j, k, l, v;
-    unsigned int *coalesced_loci = aas->coalesced_loci; 
+    int j, k, l, v;
+    int *coalesced_loci = aas->coalesced_loci; 
     int *a, *p, g, h;
     for (k = 0; k < nu; k++) {
         a = aa_linear_alloc_ancestry(aas);
@@ -361,10 +377,7 @@ aa_linear_coalesce(ercs_t *self, lineage_t **children, unsigned int num_children
         }
         parents[k]->ancestry = a; 
     }
-    //printf("%d children:\n", num_children);
     for (j = 0; j < num_children; j++) {
-        //printf("\t");
-        //aa_linear_print_ancestry(self, children[j]->ancestry);
         a = (int *) children[j]->ancestry;
         k = gsl_rng_uniform_int(self->rng, nu);
         for (l = 0; l < m; l++) { 
@@ -390,12 +403,8 @@ aa_linear_coalesce(ercs_t *self, lineage_t **children, unsigned int num_children
                     p[l] = h;
                 }
             }
-
             if (gsl_rng_uniform(self->rng) < rho[l]) {
-                // choose a different parent;
-                // FIXME
-                k++;
-                k = k % nu;
+                k = ercs_choose_parent(self, k);
             }
         }
         /* we're finished with this child's ancestry now */
@@ -404,28 +413,22 @@ aa_linear_coalesce(ercs_t *self, lineage_t **children, unsigned int num_children
     for (k = 0; k < nu; k++) {
         a = (int *) parents[k]->ancestry; 
         j = 0;
-        //printf("parent %d: ", k);
         for (l = 0; l < m; l++) {
             j += a[l];
-            //printf("%d ", a[l]);
         }
-        //printf("\n");
         if (j == 0) {
             aa_linear_free_ancestry(aas, a);
             parents[k]->ancestry = NULL; 
         }
     }
     *s_p = s;
-    
-    //printf("s = %d\n", s);
-    //ercs_print_state(self);
 out: 
     return ret;
 }
 void 
 ercs_print_state(ercs_t *self)
 {
-    unsigned int j, k;
+    int j, k;
     int *pi;
     double *tau;
     double z[] = {0.0, 0.0};
@@ -506,14 +509,18 @@ int
 ercs_sanity_check(ercs_t *self) 
 {
     int ret = 0;
-    unsigned int j, k;
+    int j, k;
     double v;
     event_class_t *e;
     if (self->torus_diameter <= 0.0) {
         ret = -ILLEGAL_ARGUMENT;
         goto out;
     }
-    if (self->sample_size == 0) {
+    if (self->sample_size <= 0) {
+        ret = -ILLEGAL_ARGUMENT;
+        goto out;
+    }
+    if (self->num_loci <= 0) {
         ret = -ILLEGAL_ARGUMENT;
         goto out;
     }
@@ -533,11 +540,11 @@ ercs_sanity_check(ercs_t *self)
             goto out;
         }
     }
-    if (self->num_parents == 0 || self->num_parents > 2) { /* FIXME */
+    if (self->num_parents <= 0) {
         ret = -ILLEGAL_ARGUMENT;
         goto out;
     }
-    if (self->num_event_classes == 0) {
+    if (self->num_event_classes <= 0) {
         ret = -ILLEGAL_ARGUMENT;
         goto out;
     }
@@ -546,15 +553,15 @@ ercs_sanity_check(ercs_t *self)
         ret = e->sanity_check(e, self);
         ERCS_ERROR_CHECK(ret, out);
     }
-    if (self->max_lineages == 0) {
+    if (self->max_lineages <= 0) {
         ret = -ILLEGAL_ARGUMENT;
         goto out;
     }
-    if (self->kdtree_bucket_size == 0) {
+    if (self->kdtree_bucket_size <= 0) {
         ret = -ILLEGAL_ARGUMENT;
         goto out;
     }
-    if (self->max_kdtree_insertions == 0) {
+    if (self->max_kdtree_insertions <= 0) {
         ret = -ILLEGAL_ARGUMENT;
         goto out;
     }
@@ -572,9 +579,9 @@ ercs_initialise(ercs_t *self)
 {
     int ret = 0;
     double *x;
-    unsigned int j;
-    unsigned int m = self->num_loci;
-    unsigned int n = self->sample_size;
+    int j;
+    int m = self->num_loci;
+    int n = self->sample_size;
     lineage_t **sample = xmalloc(n * sizeof(lineage_t *));
     const gsl_rng_type *rng_type = gsl_rng_mt19937;
     self->rng = gsl_rng_alloc(rng_type);
@@ -623,7 +630,6 @@ ercs_initialise(ercs_t *self)
     ret = kdtree_init(self->kdtree, self->max_lineages, self->kdtree_bucket_size, 
             self->random_seed); 
     ERCS_ERROR_CHECK(ret, out);
-    /* Now, make sure everything is fairly sane */    
     ret = ercs_sanity_check(self);
     ERCS_ERROR_CHECK(ret, out);
     for (j = 0; j < n; j++) {
@@ -655,7 +661,7 @@ out:
 void
 ercs_free(ercs_t *self)
 {
-    unsigned int j;
+    int j;
     for (j = 0; j < self->num_loci; j++) {
         free(self->pi[j]);
         free(self->tau[j]);
@@ -687,8 +693,7 @@ int
 ercs_simulate(ercs_t *self, unsigned int num_events)
 {
     int ret = 0;
-    unsigned int j, k;
-    unsigned int num_children, num_inserted;
+    int j, k, num_children, num_inserted;
     double L = self->torus_diameter;
     double z[2] = {0.0, 0.0};
     double d2, u;
@@ -700,6 +705,7 @@ ercs_simulate(ercs_t *self, unsigned int num_events)
     lineage_t *lin;
     event_class_t *event;
     unsigned int events = 0;
+    double total_frequency = 1.0 / self->total_event_rate;
     while (self->kappa > self->num_loci && self->time < self->max_time && 
             events < num_events) {
         events++;
@@ -707,8 +713,7 @@ ercs_simulate(ercs_t *self, unsigned int num_events)
                 self->num_event_classes, gsl_rng_uniform(self->rng));
         ERCS_ERROR_CHECK(ret, out);
         event = &self->event_classes[ret];
-        self->time += gsl_ran_exponential(self->rng, 
-                1.0 / self->total_event_rate); /* TODO: get rid of this pointless op */
+        self->time += gsl_ran_exponential(self->rng, total_frequency);
         random_point(z, L, rng); 
         ret = kdtree_get_torus_region_iterator(self->kdtree, z, event->radius, 
                 L, iter);
