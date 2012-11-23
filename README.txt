@@ -134,6 +134,7 @@ FreeBSD 9.0             i386            3.1.4           clang 3.0
 Solaris 11              x86-64          2.6.4           Sun C 5.12
 Mac OSX 10.6.8          x86-64          2.6.1           gcc 4.2.1
 Mac OSX 10.6.8          x86-64          3.2.3           gcc 4.2.1
+Debian wheezy		armv6l		2.7.3		gcc 4.6.3
 ================        ========        ======          ========
 
 The C library has additionally been compiled and tested with the 
@@ -147,6 +148,7 @@ Linux 2.6.32-5-amd64 x86_64 GNU/Linux             gcc 4.4.5
 Linux 2.6.32-5-amd64 x86_64 GNU/Linux             clang 1.1 
 Linux 3.2.0-32-generic x86_64 GNU/Linux           gcc 4.6.3
 Linux 3.2.0-32-generic x86_64 GNU/Linux           clang 3.0 
+Linux 3.2.27+ armv6l GNU/Linux			  gcc 4.6.3
 SunOS 5.11 11.0 i86pc i386 i86pc                  Sun C 5.12
 SunOS 5.10 sun4u sparc SUNW,Ultra-4               Sun C 5.8
 ==========================================        ========
