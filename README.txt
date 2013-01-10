@@ -138,7 +138,7 @@ Mac OS X 10.4.11        ppc             3.2.3           gcc 4.0.1
 Mac OS X 10.4.11        ppc             2.7.3           gcc 4.0.1
 Debian wheezy           armv6l          2.7.3           gcc 4.6.3
 Debian squeeze          ppc64           2.6.6           gcc 4.4.5	
-Debian squeeze          ppc6            3.1.3           gcc 4.4.5	
+Debian squeeze          ppc64           3.1.3           gcc 4.4.5	
 ================        ========        ======          ========
 
 The C library has additionally been compiled and tested with the 
