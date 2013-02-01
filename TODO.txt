@@ -1,0 +1,5 @@
+
+* Add event classes to allow for specific events in the history of the 
+  sample, rather than having events happen at a given rate. This can be 
+  useful to infer the likelihood of a specific history, and therefore
+  useful for phylogeography.
